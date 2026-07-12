@@ -80,17 +80,6 @@ jobs:
       - name: تثبيت حزم Capacitor
         run: npm install
 
-      - name: تحميل حزمة Firebase محلياً لنسخة أندرويد فقط
-        run: |
-          mkdir -p www/vendor/firebase
-          curl -sL https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js -o www/vendor/firebase/firebase-app.js
-          curl -sL https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js -o www/vendor/firebase/firebase-database.js
-          curl -sL https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js -o www/vendor/firebase/firebase-auth.js
-          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js#./vendor/firebase/firebase-app.js#g' www/firebase-config.js
-          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js#./vendor/firebase/firebase-database.js#g' www/firebase-config.js
-          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js#./vendor/firebase/firebase-auth.js#g' www/firebase-config.js
-          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js#./vendor/firebase/firebase-database.js#g' www/main.js
-
       - name: إضافة منصة أندرويد
         run: npx cap add android
 
