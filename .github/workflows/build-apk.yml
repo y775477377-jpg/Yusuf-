@@ -20,7 +20,8 @@ jobs:
           if [ -d "www" ] && [ -f "package.json" ]; then
             echo "✅ الهيكل صحيح: www/ و package.json موجودان في الجذر."
           else
-            echo "⚠️ www/ أو package.json غير موجودين في جذر المستودع مباشرة."
+            echo "⚠️ www/ غير موجود في الجذر. محاولة الإصلاح التلقائي..."
+
             FOUND_DIR=$(find . -maxdepth 3 -type d -name www -not -path "*/node_modules/*" | head -n 1)
             if [ -n "$FOUND_DIR" ]; then
               PARENT_DIR=$(dirname "$FOUND_DIR")
@@ -28,8 +29,27 @@ jobs:
               shopt -s dotglob
               mv "$PARENT_DIR"/* ./ 2>/dev/null || true
               shopt -u dotglob
-            else
-              echo "❌ تعذر العثور على مجلد www."
+            fi
+
+            if [ ! -d "www" ] && [ -f "index.html" ] && [ -f "main.js" ]; then
+              echo "🔧 اكتشاف رفع مسطّح لكل الملفات في الجذر — إعادة التنظيم تلقائياً."
+              mkdir -p www/modules www/icons
+
+              for f in index.html main.js style.css manifest.json service-worker.js firebase-config.js; do
+                [ -f "$f" ] && mv "$f" www/ && echo "  → نقل $f إلى www/"
+              done
+
+              for f in accountsEngine.js dashboard.js expenses.js exportUtils.js reports.js; do
+                [ -f "$f" ] && mv "$f" www/modules/ && echo "  → نقل $f إلى www/modules/"
+              done
+
+              for f in icon-192.png icon-512.png icon-512-maskable.png apple-touch-icon.png; do
+                [ -f "$f" ] && mv "$f" www/icons/ && echo "  → نقل $f إلى www/icons/"
+              done
+            fi
+
+            if [ ! -d "www" ] || [ ! -f "package.json" ]; then
+              echo "❌ تعذر إعادة التنظيم تلقائياً."
               exit 1
             fi
           fi
@@ -38,6 +58,10 @@ jobs:
           ls -la
           echo "محتويات www:"
           ls -la www || true
+          echo "محتويات www/modules:"
+          ls -la www/modules || true
+          echo "محتويات www/icons:"
+          ls -la www/icons || true
 
       - name: تجهيز Node.js
         uses: actions/setup-node@v4
