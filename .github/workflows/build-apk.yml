@@ -1,0 +1,86 @@
+name: بناء تطبيق أندرويد (APK)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: تنزيل الكود
+        uses: actions/checkout@v4
+
+      - name: التحقق من هيكل المجلدات وإصلاحه تلقائياً إن لزم
+        run: |
+          echo "محتويات جذر المستودع:"
+          ls -la
+
+          if [ -d "www" ] && [ -f "package.json" ]; then
+            echo "✅ الهيكل صحيح: www/ و package.json موجودان في الجذر."
+          else
+            echo "⚠️ www/ أو package.json غير موجودين في جذر المستودع مباشرة."
+            FOUND_DIR=$(find . -maxdepth 3 -type d -name www -not -path "*/node_modules/*" | head -n 1)
+            if [ -n "$FOUND_DIR" ]; then
+              PARENT_DIR=$(dirname "$FOUND_DIR")
+              echo "✅ تم العثور على www داخل: $PARENT_DIR — نقل محتوياته إلى الجذر."
+              shopt -s dotglob
+              mv "$PARENT_DIR"/* ./ 2>/dev/null || true
+              shopt -u dotglob
+            else
+              echo "❌ تعذر العثور على مجلد www."
+              exit 1
+            fi
+          fi
+
+          echo "محتويات الجذر بعد التحقق:"
+          ls -la
+          echo "محتويات www:"
+          ls -la www || true
+
+      - name: تجهيز Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: تجهيز Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: تجهيز Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: تثبيت حزم Capacitor
+        run: npm install
+
+      - name: تحميل حزمة Firebase محلياً لنسخة أندرويد فقط
+        run: |
+          mkdir -p www/vendor/firebase
+          curl -sL https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js -o www/vendor/firebase/firebase-app.js
+          curl -sL https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js -o www/vendor/firebase/firebase-database.js
+          curl -sL https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js -o www/vendor/firebase/firebase-auth.js
+          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js#./vendor/firebase/firebase-app.js#g' www/firebase-config.js
+          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js#./vendor/firebase/firebase-database.js#g' www/firebase-config.js
+          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js#./vendor/firebase/firebase-auth.js#g' www/firebase-config.js
+          sed -i 's#https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js#./vendor/firebase/firebase-database.js#g' www/main.js
+
+      - name: إضافة منصة أندرويد
+        run: npx cap add android
+
+      - name: مزامنة ملفات الويب مع مشروع أندرويد
+        run: npx cap sync android
+
+      - name: منح صلاحية التنفيذ لسكربت gradlew
+        run: chmod +x android/gradlew
+
+      - name: بناء ملف APK (نسخة تجريبية Debug)
+        run: cd android && ./gradlew assembleDebug --no-daemon
+
+      - name: رفع ملف APK كمخرج (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: abu-mohammed-app-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
