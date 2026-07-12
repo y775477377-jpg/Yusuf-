@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ابو محمد للتخليص الجمركي والخدمات اللوجستية</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- ==================== إعدادات تطبيق الويب المثبّت (PWA) ==================== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e3c72">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="أبو محمد">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+
+<div id="fatalErrorOverlay" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(20,20,20,0.96); color:#fff; padding:20px; overflow:auto; direction:ltr; text-align:left; font-family:monospace; font-size:13px; line-height:1.6;">
+  <div style="direction:rtl; text-align:right; font-family:'Cairo',Arial,sans-serif; margin-bottom:14px;">
+    <h2 style="color:#ff6b6b; margin:0 0 6px 0;">⚠️ حدث خطأ برمجي منع تشغيل التطبيق</h2>
+    <p style="margin:0; color:#ddd;">التقط لقطة شاشة لهذه الرسالة وأرسلها حتى يمكن تحديد سبب المشكلة بدقة.</p>
+  </div>
+  <div id="fatalErrorContent" style="white-space:pre-wrap; word-break:break-word; background:#000; padding:12px; border-radius:8px; border:1px solid #444;"></div>
+</div>
+
+<script>
+  // ==================== إظهار أي خطأ برمجي مباشرة على الشاشة ====================
+  // داخل تطبيق APK لا توجد أدوات مطوّر (Console) ظاهرة للمستخدم العادي،
+  // فهذه الطبقة تعرض أي خطأ يمنع تشغيل الصفحة مباشرة على الشاشة نفسها.
+  (function () {
+    const overlay = () => document.getElementById("fatalErrorOverlay");
+    const content = () => document.getElementById("fatalErrorContent");
+    function showError(label, details) {
+      const o = overlay(), c = content();
+      if (!o || !c) return;
+      o.style.display = "block";
+      c.textContent += (c.textContent ? "\n\n" : "") + "[" + label + "]\n" + details;
+    }
+    window.addEventListener("error", function (e) {
+      showError("خطأ سكربت", (e.message || "خطأ غير معروف") + "\nالملف: " + (e.filename || "-") + "\nالسطر: " + (e.lineno || "-") + ":" + (e.colno || "-"));
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      const reason = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+      showError("خطأ Promise غير معالج", reason);
+    });
+  })();
+</script>
+
+<button id="pwaInstallBtn" class="pwa-install-btn" style="display:none;" onclick="installPwaApp()">
+  &#128241; تثبيت التطبيق على الهاتف
+</button>
+
+<header class="header">
+  <div class="logo-box">&#128667;</div>
+  <div>
+    <h1>ابو محمد للتخليص الجمركي والخدمات اللوجستية</h1>
+    <p>الجمهورية اليمنية</p>
+    <p>&#128222; 775477377</p>
+  </div>
+</header>
+
+<nav class="menu">
+  <button class="menu-btn active" onclick="showSection('dashboard')">&#127968; لوحة التحكم</button>
+  <button class="menu-btn" onclick="showSection('invoice')">&#128196; الفواتير</button>
+  <button class="menu-btn" onclick="showSection('traders')">&#128100; التجار</button>
+  <button class="menu-btn" onclick="showSection('drivers')">&#128666; السائقين</button>
+  <button class="menu-btn" onclick="showSection('trucks')">&#128667; القواطر</button>
+  <button class="menu-btn" onclick="showSection('receipts')">&#128181; سندات القبض</button>
+  <button class="menu-btn" onclick="showSection('accounts')">&#128176; حسابات التجار</button>
+  <button class="menu-btn" onclick="showSection('driverAccount')">&#128104;&#8205;&#9881;&#65039; حساب السائق</button>
+  <button class="menu-btn" onclick="showSection('truckAccount')">&#128667; حساب القاطرة</button>
+  <button class="menu-btn" onclick="showSection('reports')">&#128202; التقارير</button>
+</nav>
+
+<!-- ==================== لوحات حسابات المكتب (النثريات / عمولات المكتب / أجور العمال / سندات الصرف) ==================== -->
+<!-- تُعرض هذه اللوحات فوق قسم "لوحة التحكم" وتُقرأ بياناتها مباشرة وحصراً من main.js عبر Firebase -->
+<div class="office-ledger-wrapper">
+  <div class="office-ledger-nav">
+    <button class="ledger-tab-btn" onclick="openOfficeLedgerPanel('exp')">&#128202; حسابات النثريات</button>
+    <button class="ledger-tab-btn" onclick="openOfficeLedgerPanel('comm')">&#128176; عمولات المكتب</button>
+    <button class="ledger-tab-btn" onclick="openOfficeLedgerPanel('work')">&#128119; حسابات العمال</button>
+    <button class="ledger-tab-btn" onclick="openOfficeLedgerPanel('pay')">&#128209; سندات الصرف</button>
+  </div>
+
+  <div id="dashboard-style-panels" class="office-ledger-panels">
+
+    <div id="v-panel-expenses" class="d-panel office-panel-card">
+      <div class="office-panel-header">
+        <h3>&#128201; كشف حساب النثريات والمصروفات (مرحّلة تلقائياً من الفواتير)</h3>
+        <button class="panel-close-btn" onclick="closeOfficeLedgerPanel()">&#10005; إغلاق</button>
+      </div>
+      <div class="invoice-buttons" style="margin: 0.75rem 0; display:flex; flex-wrap:wrap; gap:8px;">
+        <button onclick="printOfficePanel('exp')" class="btn-secondary">&#128424; طباعة</button>
+        <button onclick="exportOfficePanelPDF('exp')" class="btn-secondary">&#128196; PDF</button>
+        <button onclick="exportOfficePanelPNG('exp')" class="btn-secondary">&#128444; PNG</button>
+        <button onclick="exportOfficePanelExcel('exp')" class="btn-secondary">&#128202; Excel</button>
+      </div>
+      <div id="capture-expenses">
+        <div class="invoice-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1e3c72; padding-bottom:12px; margin-bottom:15px;">
+          <div class="invoice-logo" style="display:flex; align-items:center; gap:10px;">
+            <div class="logo-icon" style="font-size:2rem;">&#128667;</div>
+            <div class="logo-text" style="text-align:right;">
+              <h2 style="color:#1e3c72; margin:0; font-size:1.2rem;">مكتب ابو محمد</h2>
+              <p style="margin:2px 0 0 0; color:#555; font-size:0.85rem;">للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+          <div style="text-align:left; color:#555; font-size:0.85rem;">
+            <p style="margin:0;">الجمهورية اليمنية</p>
+            <p style="margin:3px 0 0 0;">&#128222; 775477377</p>
+          </div>
+        </div>
+        <h3 style="text-align:center; color:#1e3c72; margin-bottom:15px;">كشف حساب النثريات والمصروفات</h3>
+        <div class="office-total-box">
+          <span>إجمالي النثريات:</span>
+          <strong id="b-total-expenses" class="office-total-value office-total-red">0 ريال</strong>
+        </div>
+        <table class="office-ledger-table">
+          <thead><tr><th>رقم الفاتورة</th><th>التاريخ</th><th>البيان / التفاصيل</th><th>المبلغ المرحّل</th></tr></thead>
+          <tbody id="r-expenses-rows"><tr><td colspan="4" class="office-empty">جارِ التحميل...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="v-panel-commissions" class="d-panel office-panel-card">
+      <div class="office-panel-header">
+        <h3>&#128176; سجل عمولات وأرباح المكتب (مرحّلة تلقائياً من الفواتير)</h3>
+        <button class="panel-close-btn" onclick="closeOfficeLedgerPanel()">&#10005; إغلاق</button>
+      </div>
+      <div class="invoice-buttons" style="margin: 0.75rem 0; display:flex; flex-wrap:wrap; gap:8px;">
+        <button onclick="printOfficePanel('comm')" class="btn-secondary">&#128424; طباعة</button>
+        <button onclick="exportOfficePanelPDF('comm')" class="btn-secondary">&#128196; PDF</button>
+        <button onclick="exportOfficePanelPNG('comm')" class="btn-secondary">&#128444; PNG</button>
+        <button onclick="exportOfficePanelExcel('comm')" class="btn-secondary">&#128202; Excel</button>
+      </div>
+      <div id="capture-commissions">
+        <div class="invoice-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1e3c72; padding-bottom:12px; margin-bottom:15px;">
+          <div class="invoice-logo" style="display:flex; align-items:center; gap:10px;">
+            <div class="logo-icon" style="font-size:2rem;">&#128667;</div>
+            <div class="logo-text" style="text-align:right;">
+              <h2 style="color:#1e3c72; margin:0; font-size:1.2rem;">مكتب ابو محمد</h2>
+              <p style="margin:2px 0 0 0; color:#555; font-size:0.85rem;">للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+          <div style="text-align:left; color:#555; font-size:0.85rem;">
+            <p style="margin:0;">الجمهورية اليمنية</p>
+            <p style="margin:3px 0 0 0;">&#128222; 775477377</p>
+          </div>
+        </div>
+        <h3 style="text-align:center; color:#1e3c72; margin-bottom:15px;">سجل عمولات وأرباح المكتب</h3>
+        <div class="office-total-box">
+          <span>مجموع عمولات المكتب:</span>
+          <strong id="b-total-commissions" class="office-total-value office-total-green">0 ريال</strong>
+        </div>
+        <table class="office-ledger-table">
+          <thead><tr><th>رقم الفاتورة</th><th>التاريخ</th><th>التاجر / العميل</th><th>قيمة العمولة المرحّلة</th></tr></thead>
+          <tbody id="r-commissions-rows"><tr><td colspan="4" class="office-empty">جارِ التحميل...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="v-panel-workers" class="d-panel office-panel-card">
+      <div class="office-panel-header">
+        <h3>&#128119; كشوفات ومستحقات أجور العمال (مرحّلة تلقائياً من الفواتير)</h3>
+        <button class="panel-close-btn" onclick="closeOfficeLedgerPanel()">&#10005; إغلاق</button>
+      </div>
+      <div class="invoice-buttons" style="margin: 0.75rem 0; display:flex; flex-wrap:wrap; gap:8px;">
+        <button onclick="printOfficePanel('work')" class="btn-secondary">&#128424; طباعة</button>
+        <button onclick="exportOfficePanelPDF('work')" class="btn-secondary">&#128196; PDF</button>
+        <button onclick="exportOfficePanelPNG('work')" class="btn-secondary">&#128444; PNG</button>
+        <button onclick="exportOfficePanelExcel('work')" class="btn-secondary">&#128202; Excel</button>
+      </div>
+      <div id="capture-workers">
+        <div class="invoice-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1e3c72; padding-bottom:12px; margin-bottom:15px;">
+          <div class="invoice-logo" style="display:flex; align-items:center; gap:10px;">
+            <div class="logo-icon" style="font-size:2rem;">&#128667;</div>
+            <div class="logo-text" style="text-align:right;">
+              <h2 style="color:#1e3c72; margin:0; font-size:1.2rem;">مكتب ابو محمد</h2>
+              <p style="margin:2px 0 0 0; color:#555; font-size:0.85rem;">للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+          <div style="text-align:left; color:#555; font-size:0.85rem;">
+            <p style="margin:0;">الجمهورية اليمنية</p>
+            <p style="margin:3px 0 0 0;">&#128222; 775477377</p>
+          </div>
+        </div>
+        <h3 style="text-align:center; color:#1e3c72; margin-bottom:15px;">كشوفات ومستحقات أجور العمال</h3>
+        <div class="office-total-box-group">
+          <div class="office-total-box">
+            <span>إجمالي أجور العمال المستحقة:</span>
+            <strong id="b-total-workers" class="office-total-value office-total-blue">0 ريال</strong>
+          </div>
+          <div class="office-total-box">
+            <span>الرصيد بعد سندات الصرف:</span>
+            <strong id="b-workers-balance" class="office-total-value">0 ريال</strong>
+          </div>
+        </div>
+        <table class="office-ledger-table">
+          <thead><tr><th>رقم الفاتورة</th><th>التاريخ</th><th>البيان التفصيلي</th><th>الأجور المرحّلة</th></tr></thead>
+          <tbody id="r-workers-rows"><tr><td colspan="4" class="office-empty">جارِ التحميل...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="v-panel-payments" class="d-panel office-panel-card">
+      <div class="office-panel-header">
+        <h3 class="office-panel-header-danger">&#128221; نظام إصدار سند صرف مالي جديد</h3>
+        <button class="panel-close-btn" onclick="closeOfficeLedgerPanel()">&#10005; إغلاق</button>
+      </div>
+
+      <div class="office-payment-form">
+        <div class="office-form-group">
+          <label>التاريخ</label>
+          <input type="date" id="new-pay-date">
+        </div>
+        <div class="office-form-group office-form-grow2">
+          <label>يصرف لأمر (العامل / الجهة)</label>
+          <input type="text" id="new-pay-to" placeholder="اسم المستلم">
+        </div>
+        <div class="office-form-group">
+          <label>المبلغ (ريال)</label>
+          <input type="number" id="new-pay-amount" placeholder="0.00" min="0">
+        </div>
+        <div class="office-form-group office-form-grow3">
+          <label>البيان / غرض الصرف</label>
+          <input type="text" id="new-pay-notes" placeholder="اكتب تفاصيل غرض الصرف هنا...">
+        </div>
+        <div class="office-form-action">
+          <button type="button" onclick="addNewPaymentVoucher()" class="office-save-btn">&#10133; حفظ وترحيل السند</button>
+        </div>
+      </div>
+
+      <div class="invoice-buttons" style="margin: 0.75rem 0; display:flex; flex-wrap:wrap; gap:8px;">
+        <button onclick="printOfficePanel('pay')" class="btn-secondary">&#128424; طباعة</button>
+        <button onclick="exportOfficePanelPDF('pay')" class="btn-secondary">&#128196; PDF</button>
+        <button onclick="exportOfficePanelPNG('pay')" class="btn-secondary">&#128444; PNG</button>
+        <button onclick="exportOfficePanelExcel('pay')" class="btn-secondary">&#128202; Excel</button>
+      </div>
+      <div id="capture-payments">
+        <div class="invoice-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1e3c72; padding-bottom:12px; margin-bottom:15px;">
+          <div class="invoice-logo" style="display:flex; align-items:center; gap:10px;">
+            <div class="logo-icon" style="font-size:2rem;">&#128667;</div>
+            <div class="logo-text" style="text-align:right;">
+              <h2 style="color:#1e3c72; margin:0; font-size:1.2rem;">مكتب ابو محمد</h2>
+              <p style="margin:2px 0 0 0; color:#555; font-size:0.85rem;">للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+          <div style="text-align:left; color:#555; font-size:0.85rem;">
+            <p style="margin:0;">الجمهورية اليمنية</p>
+            <p style="margin:3px 0 0 0;">&#128222; 775477377</p>
+          </div>
+        </div>
+        <h3 style="text-align:center; color:#1e3c72; margin-bottom:15px;">سجل سندات الصرف الصادرة</h3>
+        <div class="office-total-box">
+          <span>إجمالي سندات الصرف الصادرة:</span>
+          <strong id="b-total-payments" class="office-total-value office-total-red">0 ريال</strong>
+        </div>
+
+        <h4 class="office-subtitle">&#128203; سجل سندات الصرف الصادرة</h4>
+        <table class="office-ledger-table office-ledger-table-dark">
+          <thead><tr><th>التاريخ</th><th>إلى أمر</th><th>المبلغ الصادر</th><th>توضيح غرض الصرف</th></tr></thead>
+          <tbody id="r-payments-rows"><tr><td colspan="4" class="office-empty">جارِ التحميل...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<section id="dashboard" class="section active">
+  <div class="dashboard">
+    <div class="card">
+      <h3>اجمالي الفواتير</h3>
+      <p id="invoiceCount">0</p>
+    </div>
+    <div class="card">
+      <h3>اجمالي الايرادات</h3>
+      <p id="totalRevenue">0</p>
+    </div>
+    <div class="card">
+      <h3>اجمالي الاكياس</h3>
+      <p id="bagsCount">0</p>
+    </div>
+    <div class="card">
+      <h3>عدد التجار</h3>
+      <p id="traderCount">0</p>
+    </div>
+    <div class="card">
+      <h3>عدد السائقين</h3>
+      <p id="driverCount">0</p>
+    </div>
+    <div class="card">
+      <h3>عدد القواطر</h3>
+      <p id="truckCount">0</p>
+    </div>
+  </div>
+
+  <div class="dashboard" style="margin-top: 1rem;">
+    <div class="card">
+      <h3>إيرادات اليوم</h3>
+      <p id="todayRevenue">0</p>
+    </div>
+    <div class="card">
+      <h3>إيرادات الشهر</h3>
+      <p id="monthRevenue">0</p>
+    </div>
+    <div class="card">
+      <h3>إجمالي المقبوضات</h3>
+      <p id="totalReceiptsBox">0</p>
+    </div>
+    <div class="card">
+      <h3>إجمالي المصروفات</h3>
+      <p id="totalExpensesBox">0</p>
+    </div>
+    <div class="card">
+      <h3>إجمالي عمولة المكتب</h3>
+      <p id="totalCommissionBox">0</p>
+    </div>
+    <div class="card">
+      <h3>الأرباح (عمولة المكتب - المصروفات)</h3>
+      <p id="netProfitBox">0</p>
+    </div>
+    <div class="card">
+      <h3>الرصيد المستحق على التجار</h3>
+      <p id="outstandingBalanceBox">0</p>
+    </div>
+  </div>
+
+  <div class="dashboard-recent-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+    <div class="card" style="text-align: right;">
+      <h3 style="margin-bottom: 10px;">آخر عشر فواتير</h3>
+      <table class="report-table">
+        <thead><tr><th>رقم الفاتورة</th><th>التاريخ</th><th>التاجر</th><th>المبلغ</th></tr></thead>
+        <tbody id="recentInvoicesRows"></tbody>
+      </table>
+    </div>
+    <div class="card" style="text-align: right;">
+      <h3 style="margin-bottom: 10px;">آخر سندات القبض</h3>
+      <table class="report-table">
+        <thead><tr><th>التاريخ</th><th>التاجر</th><th>المبلغ</th></tr></thead>
+        <tbody id="recentReceiptsRows"></tbody>
+      </table>
+    </div>
+    <div class="card" style="text-align: right;">
+      <h3 style="margin-bottom: 10px;">آخر سندات الصرف</h3>
+      <table class="report-table">
+        <thead><tr><th>التاريخ</th><th>إلى أمر</th><th>المبلغ</th></tr></thead>
+        <tbody id="recentExpensesRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="welcome-section">
+    <h2>مرحبا بك في نظام ابو محمد للتخليص الجمركي والخدمات اللوجستية</h2>
+    <p>تم ربط النظام بنجاح مع Firebase.</p>
+  </div>
+</section>
+
+<section id="invoice" class="section">
+  <h2>&#128196; فاتورة جديدة</h2>
+  <div class="invoice-form">
+    <div class="form-group">
+      <label>رقم الفاتورة</label>
+      <input type="text" id="invoiceNumber" readonly>
+    </div>
+    <div class="form-group">
+      <label>التاريخ</label>
+      <input type="date" id="invoiceDate">
+    </div>
+    <div class="form-group">
+      <label>اسم التاجر *</label>
+      <input type="text" id="merchantName" list="tradersDatalist" placeholder="اختر او اكتب اسم التاجر">
+      <datalist id="tradersDatalist"></datalist>
+    </div>
+    <div class="form-group">
+      <label>اسم السائق</label>
+      <input type="text" id="driverName" list="driversDatalist" placeholder="اختر او اكتب اسم السائق">
+      <datalist id="driversDatalist"></datalist>
+    </div>
+    <div class="form-group">
+      <label>رقم القاطرة</label>
+      <input type="text" id="truckNumber" list="trucksDatalist" placeholder="اختر او اكتب رقم القاطرة">
+      <datalist id="trucksDatalist"></datalist>
+    </div>
+    <div class="form-group">
+      <label>عدد الاكياس *</label>
+      <input type="number" id="bagCount" min="0" placeholder="عدد الاكياس">
+    </div>
+    <div class="form-group">
+      <label>نوع القاطرة</label>
+      <select id="truckType">
+        <option value="surface">سطحة</option>
+        <option value="dump">قلاب</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>المنفذ الجمركي</label>
+      <select id="customsOffice">
+        <option value="jawf">جمرك الجوف</option>
+        <option value="athar">جمرك عفار</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="invoice-result">
+    <div class="result-row">
+      <span>عدد الاكياس:</span>
+      <span id="displayBagCount">0</span>
+    </div>
+    <div class="result-row">
+      <span>رسوم الاكياس:</span>
+      <span id="bagsFee">0</span>
+    </div>
+    <div class="result-row">
+      <span>الرسوم الثابتة:</span>
+      <span>74,000</span>
+    </div>
+    <div class="result-row" id="workerFeeRow">
+      <span>رسوم العمال:</span>
+      <span id="workerFee">30,000</span>
+    </div>
+    <div class="result-row" id="miscFeeRow">
+      <span>النثرية:</span>
+      <span id="miscFeeDisplay">8,500</span>
+    </div>
+    <div class="result-row">
+      <span>عمولة المكتب:</span>
+      <span id="officeFeeDisplay">8,500</span>
+    </div>
+    <div class="result-row total">
+      <span>الاجمالي:</span>
+      <span id="totalAmount">0</span>
+      <span>ريال</span>
+    </div>
+  </div>
+
+  <div class="invoice-buttons">
+    <button id="calculateBtn" class="btn-primary">&#128290; حساب</button>
+    <button id="saveInvoiceBtn" class="btn-success">&#128190; حفظ الفاتورة</button>
+  </div>
+
+  <div id="exportButtons" class="export-buttons" style="display: none;">
+    <h3 style="color: #28a745; margin-bottom: 1rem;">&#9989; تم حفظ الفاتورة بنجاح</h3>
+    <div class="invoice-buttons">
+      <button onclick="printInvoice()" class="btn-secondary">&#128424; طباعة الفاتورة</button>
+      <button onclick="exportInvoicePDF()" class="btn-secondary">&#128196; حفظ PDF</button>
+      <button onclick="exportInvoicePNG()" class="btn-secondary">&#128444; حفظ PNG</button>
+      <button onclick="newInvoice()" class="btn-primary">&#128196; فاتورة جديدة</button>
+    </div>
+  </div>
+
+  <div id="printArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo" id="printLogoArea">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>رقم الفاتورة:</span> <strong id="pInvoiceNumber">-</strong></p>
+            <p><span>التاريخ:</span> <strong id="pDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="invoice-title">
+        <h1>فاتورة تخليص جمركي - قاطرة اسمنت</h1>
+        <p>الجمهورية اليمنية - هاتف: 775477377</p>
+      </div>
+
+      <table class="info-table">
+        <tr>
+          <th>السائق</th>
+          <td id="pDriver">-</td>
+          <th>التاجر</th>
+          <td id="pMerchant">-</td>
+        </tr>
+        <tr>
+          <th>رقم اللوحة</th>
+          <td id="pTruck">-</td>
+          <th>نوع القاطرة</th>
+          <td id="pTruckType">-</td>
+        </tr>
+        <tr>
+          <th>البيان الجمركي</th>
+          <td>---</td>
+          <th>عدد الاكياس</th>
+          <td id="pBagCount">0</td>
+        </tr>
+      </table>
+
+      <table class="details-table">
+        <thead>
+          <tr>
+            <th class="col-item">البيان</th>
+            <th class="col-amount">المبلغ (ريال يمني)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="item-name">
+              <div class="item-title">رسوم الجمارك والضرائب</div>
+              <div class="item-desc" id="pBagCalc">(0 كيس × 587.65) + 74,000 ثابت</div>
+            </td>
+            <td class="item-amount" id="pBagsFee">0</td>
+          </tr>
+          <tr id="rowMisc">
+            <td class="item-name">
+              <div class="item-title">عمولات + طباعة - معاينة - نثريات</div>
+            </td>
+            <td class="item-amount" id="pMiscFee">8,500</td>
+          </tr>
+          <tr>
+            <td class="item-name">
+              <div class="item-title">اتعاب التخليص (عمولة المكتب)</div>
+            </td>
+            <td class="item-amount" id="pOfficeFee">8,500</td>
+          </tr>
+          <tr id="rowWorker">
+            <td class="item-name">
+              <div class="item-title">اجور العمال والخبطات</div>
+              <div class="item-desc" id="pWorkerType">(سطحة)</div>
+            </td>
+            <td class="item-amount" id="pWorkerFee">30,000</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td class="item-name">
+              <div class="item-title total-title">الاجمالي العام المطلوب</div>
+            </td>
+            <td class="item-amount total-amount" id="pTotal">0</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature">
+            <p>توقيع المستلم</p>
+            <div class="signature-line"></div>
+          </div>
+          <div class="signature">
+            <p>ختم وتوقيع المكتب</p>
+            <div class="signature-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="traders" class="section">
+  <h2>&#128100; ادارة التجار</h2>
+  <div class="search-box">
+    <input type="text" id="searchTrader" placeholder="البحث عن تاجر..." onkeyup="searchTraders()">
+  </div>
+  <div class="form-inline">
+    <input id="traderName" placeholder="اسم التاجر *">
+    <input id="traderPhone" placeholder="رقم الهاتف">
+    <button id="addTraderBtn" class="btn-success">&#10133; اضافة تاجر</button>
+  </div>
+  <div class="invoice-buttons" style="margin: 1rem 0; display:flex; flex-wrap:wrap; gap:10px;">
+    <button onclick="printEntityList('traders')" class="btn-secondary">&#128424; طباعة القائمة</button>
+    <button onclick="exportEntityListPDF('traders')" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportEntityListPNG('traders')" class="btn-secondary">&#128444; PNG</button>
+    <button onclick="exportEntityListExcel('traders')" class="btn-secondary">&#128202; Excel</button>
+  </div>
+  <div id="tradersList" class="list-container"></div>
+
+  <div id="tradersPrintArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>التاريخ:</span> <strong id="tradersListDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="invoice-title"><h1>قائمة التجار</h1></div>
+      <table class="details-table">
+        <thead><tr><th class="col-item">اسم التاجر</th><th class="col-item">رقم الهاتف</th></tr></thead>
+        <tbody id="tradersPrintBody"></tbody>
+      </table>
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature"><p>توقيع المراجع</p><div class="signature-line"></div></div>
+          <div class="signature"><p>ختم وتوقيع المكتب</p><div class="signature-line"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="drivers" class="section">
+  <h2>&#128666; ادارة السائقين</h2>
+  <div class="search-box">
+    <input type="text" id="searchDriver" placeholder="البحث عن سائق..." onkeyup="searchDrivers()">
+  </div>
+  <div class="form-inline">
+    <input id="driverNameInput" placeholder="اسم السائق *">
+    <input id="driverPhone" placeholder="رقم الهاتف">
+    <button id="addDriverBtn" class="btn-success">&#10133; اضافة سائق</button>
+  </div>
+  <div class="invoice-buttons" style="margin: 1rem 0; display:flex; flex-wrap:wrap; gap:10px;">
+    <button onclick="printEntityList('drivers')" class="btn-secondary">&#128424; طباعة القائمة</button>
+    <button onclick="exportEntityListPDF('drivers')" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportEntityListPNG('drivers')" class="btn-secondary">&#128444; PNG</button>
+    <button onclick="exportEntityListExcel('drivers')" class="btn-secondary">&#128202; Excel</button>
+  </div>
+  <div id="driversList" class="list-container"></div>
+
+  <div id="driversPrintArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>التاريخ:</span> <strong id="driversListDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="invoice-title"><h1>قائمة السائقين</h1></div>
+      <table class="details-table">
+        <thead><tr><th class="col-item">اسم السائق</th><th class="col-item">رقم الهاتف</th></tr></thead>
+        <tbody id="driversPrintBody"></tbody>
+      </table>
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature"><p>توقيع المراجع</p><div class="signature-line"></div></div>
+          <div class="signature"><p>ختم وتوقيع المكتب</p><div class="signature-line"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="trucks" class="section">
+  <h2>&#128667; ادارة القواطر</h2>
+  <div class="search-box">
+    <input type="text" id="searchTruck" placeholder="البحث عن قاطرة..." onkeyup="searchTrucks()">
+  </div>
+  <div class="form-inline">
+    <input id="truckNumberInput" placeholder="رقم القاطرة *">
+    <input id="truckOwner" placeholder="اسم المالك">
+    <select id="truckTypeInput">
+      <option value="surface">سطحة</option>
+      <option value="dump">قلاب</option>
+    </select>
+    <button id="addTruckBtn" class="btn-success">&#10133; اضافة قاطرة</button>
+  </div>
+  <div class="invoice-buttons" style="margin: 1rem 0; display:flex; flex-wrap:wrap; gap:10px;">
+    <button onclick="printEntityList('trucks')" class="btn-secondary">&#128424; طباعة القائمة</button>
+    <button onclick="exportEntityListPDF('trucks')" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportEntityListPNG('trucks')" class="btn-secondary">&#128444; PNG</button>
+    <button onclick="exportEntityListExcel('trucks')" class="btn-secondary">&#128202; Excel</button>
+  </div>
+  <div id="trucksList" class="list-container"></div>
+
+  <div id="trucksPrintArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>التاريخ:</span> <strong id="trucksListDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="invoice-title"><h1>قائمة القواطر</h1></div>
+      <table class="details-table">
+        <thead><tr><th class="col-item">رقم اللوحة</th><th class="col-item">اسم المالك</th><th class="col-item">النوع</th></tr></thead>
+        <tbody id="trucksPrintBody"></tbody>
+      </table>
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature"><p>توقيع المراجع</p><div class="signature-line"></div></div>
+          <div class="signature"><p>ختم وتوقيع المكتب</p><div class="signature-line"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="receipts" class="section">
+  <h2>&#128181; سندات القبض</h2>
+  <div class="receipt-form">
+    <div class="form-group">
+      <label>اختر التاجر *</label>
+      <select id="receiptTrader"><option value="">اختر التاجر</option></select>
+    </div>
+    <div class="form-group">
+      <label>المبلغ *</label>
+      <input type="number" id="receiptAmount" placeholder="المبلغ بالريال">
+    </div>
+    <div class="form-group">
+      <label>نوع العملية</label>
+      <select id="receiptType">
+        <option value="receipt">💵 سند قبض</option>
+        <option value="transfer">💸 حوالة واردة</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>التاريخ</label>
+      <input type="date" id="receiptDate">
+    </div>
+    <div class="form-group">
+      <label>ملاحظات</label>
+      <input type="text" id="receiptNotes" placeholder="ملاحظات (اختياري)">
+    </div>
+    <button id="saveReceiptBtn" class="btn-success">&#128190; حفظ سند القبض</button>
+  </div>
+  <h3 style="margin-top: 2rem; margin-bottom: 1rem;">سندات القبض المحفوظة</h3>
+  <div class="invoice-buttons" style="margin: 1rem 0; display:flex; flex-wrap:wrap; gap:10px;">
+    <button onclick="printEntityList('receipts')" class="btn-secondary">&#128424; طباعة القائمة</button>
+    <button onclick="exportEntityListPDF('receipts')" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportEntityListPNG('receipts')" class="btn-secondary">&#128444; PNG</button>
+    <button onclick="exportEntityListExcel('receipts')" class="btn-secondary">&#128202; Excel</button>
+  </div>
+  <div id="receiptsList" class="list-container"></div>
+
+  <div id="receiptsPrintArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>التاريخ:</span> <strong id="receiptsListDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="invoice-title"><h1>سندات القبض</h1></div>
+      <table class="details-table">
+        <thead><tr><th class="col-item">التاريخ</th><th class="col-item">التاجر</th><th class="col-amount">المبلغ</th><th class="col-item">ملاحظات</th></tr></thead>
+        <tbody id="receiptsPrintBody"></tbody>
+      </table>
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature"><p>توقيع المراجع</p><div class="signature-line"></div></div>
+          <div class="signature"><p>ختم وتوقيع المكتب</p><div class="signature-line"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="accounts" class="section">
+  <h2>&#128176; حسابات التجار</h2>
+  
+  <div class="invoice-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+    <div class="form-group">
+      <label>اختر التاجر</label>
+      <select id="merchantAccountSelect"><option value="">اختر التاجر</option></select>
+    </div>
+
+    <div class="form-group">
+      <label>نطاق كشف الحساب</label>
+      <select id="merchantPeriodType" class="form-select">
+        <option value="all">كل الفترات (كامل الحساب)</option>
+        <option value="daily">اليوم</option>
+        <option value="weekly">هذا الأسبوع</option>
+        <option value="monthly">هذا الشهر</option>
+        <option value="custom">نطاق مخصص</option>
+      </select>
+    </div>
+
+    <div id="merchantCustomDates" class="form-group" style="display: none; gap: 0.5rem; flex-direction: row; align-items: flex-end; grid-column: span 2;">
+      <div>
+        <label>من تاريخ</label>
+        <input type="date" id="merchantFromDate" style="padding: 8px;">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input type="date" id="merchantToDate" style="padding: 8px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="invoice-buttons" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 10px;">
+    <button onclick="printDetailedMerchantAccount()" class="btn-success" style="background-color: #28a745; color: #fff; font-weight: bold; padding: 12px 22px; border: none; border-radius: 4px; cursor: pointer; font-family: 'Cairo', sans-serif; font-size: 0.95rem;">
+      🖨️ طباعة كشف الحساب التفصيلي الملون
+    </button>
+    <button onclick="printAccount()" class="btn-secondary">&#128424; طباعة كشف الحساب</button>
+    <button onclick="exportAccountPDF()" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportAccountPNG()" class="btn-secondary">&#128444; PNG</button>
+  </div>
+
+  <div id="merchantSummary" class="card" style="margin-bottom: 1.5rem; display: none;">
+    <h3>كشف حساب التاجر</h3>
+    <div class="report-grid">
+      <div class="report-item">
+        <span class="report-label">عدد الفواتير</span>
+        <span class="report-value" id="merchantInvoiceCount">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">اجمالي الفواتير</span>
+        <span class="report-value" id="totalInvoices">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">عدد سندات القبض</span>
+        <span class="report-value" id="merchantReceiptCount">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">اجمالي المقبوضات</span>
+        <span class="report-value" id="totalReceipts">0</span>
+      </div>
+      <div class="report-item total">
+        <span class="report-label">الرصيد الحالي</span>
+        <span class="report-value" id="merchantBalance">0</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom: 1rem;">تفاصيل المعاملات</h3>
+  <div class="table-container">
+    <table class="report-table">
+      <thead>
+        <tr><th>النوع</th><th>التاريخ</th><th>التفاصيل</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr>
+      </thead>
+      <tbody id="merchantTransactions"></tbody>
+    </table>
+  </div>
+
+  <div id="accountPrintArea" class="print-area">
+    <div class="invoice-template acc-statement">
+      <div class="invoice-header acc-print-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <img src="39540.jpg" alt="شعار المكتب" class="acc-office-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="logo-icon" style="display:none;">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب أبو محمد للتخليص الجمركي والخدمات اللوجستية</h2>
+              <p>الجمهورية اليمنية &nbsp;|&nbsp; &#128222; 775477377</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>كشف حساب التاجر:</span> <strong id="accMerchantName">-</strong></p>
+            <p><span>تاريخ الطباعة:</span> <strong id="accDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="invoice-title">
+        <h1>كشف حساب تاجر</h1>
+      </div>
+
+      <div class="acc-print-cards">
+        <div class="acc-card acc-card-neutral">
+          <span class="acc-card-label">عدد الفواتير</span>
+          <span class="acc-card-value" id="accCardInvoiceCount">0</span>
+        </div>
+        <div class="acc-card acc-card-debit">
+          <span class="acc-card-label">إجمالي المدين (الفواتير)</span>
+          <span class="acc-card-value" id="accCardTotalDebit">0 ريال</span>
+        </div>
+        <div class="acc-card acc-card-credit">
+          <span class="acc-card-label">إجمالي الدائن (المقبوضات)</span>
+          <span class="acc-card-value" id="accCardTotalCredit">0 ريال</span>
+        </div>
+        <div class="acc-card acc-card-balance">
+          <span class="acc-card-label">الصافي النهائي</span>
+          <span class="acc-card-value" id="accCardBalance">0 ريال</span>
+        </div>
+      </div>
+
+      <table class="details-table acc-details-table">
+        <thead>
+          <tr>
+            <th class="col-item" style="width:65px;">النوع</th>
+            <th class="col-item" style="width:75px;">رقم الحركة</th>
+            <th class="col-item" style="width:85px;">التاريخ</th>
+            <th class="col-item">البيان والتفاصيل</th>
+            <th class="col-amount">مدين</th>
+            <th class="col-amount">دائن</th>
+            <th class="col-amount">الرصيد الجاري</th>
+          </tr>
+        </thead>
+        <tbody id="accTransactionsBody"></tbody>
+        <tfoot>
+          <tr class="total-row">
+            <td class="item-name" colspan="4">
+              <div class="item-title total-title">الرصيد النهائي</div>
+            </td>
+            <td class="item-amount" id="accTotalDebit">0</td>
+            <td class="item-amount" id="accTotalCredit">0</td>
+            <td class="item-amount total-amount" id="accFinalBalance">0</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature">
+            <p>توقيع مراجع الحسابات</p>
+            <div class="signature-line"></div>
+          </div>
+          <div class="signature">
+            <p>ختم وتوقيع المكتب الرسمي</p>
+            <div class="signature-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="driverAccount" class="section">
+  <h2>&#128104;&#8205;&#9881;&#65039; حساب السائق</h2>
+
+  <div class="invoice-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+    <div class="form-group">
+      <label>اختر السائق</label>
+      <select id="driverAccountSelect"><option value="">اختر السائق</option></select>
+    </div>
+    <div class="form-group">
+      <label>نطاق كشف الحساب</label>
+      <select id="driverPeriodType" class="form-select">
+        <option value="all">كل الفترات (كامل الحساب)</option>
+        <option value="daily">اليوم</option>
+        <option value="weekly">هذا الأسبوع</option>
+        <option value="monthly">هذا الشهر</option>
+        <option value="yearly">هذه السنة</option>
+        <option value="custom">نطاق مخصص</option>
+      </select>
+    </div>
+    <div id="driverCustomDates" class="form-group" style="display: none; gap: 0.5rem; flex-direction: row; align-items: flex-end; grid-column: span 2;">
+      <div>
+        <label>من تاريخ</label>
+        <input type="date" id="driverFromDate" style="padding: 8px;">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input type="date" id="driverToDate" style="padding: 8px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="invoice-buttons" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 10px;">
+    <button onclick="printDriverAccount()" class="btn-secondary">&#128424; طباعة</button>
+    <button onclick="exportDriverAccountPDF()" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportDriverAccountPNG()" class="btn-secondary">&#128444; PNG</button>
+    <button onclick="exportDriverAccountExcel()" class="btn-secondary">&#128202; Excel</button>
+  </div>
+
+  <div id="driverSummary" class="card" style="margin-bottom: 1.5rem; display: none;">
+    <h3>ملخص حساب السائق</h3>
+    <div class="report-grid">
+      <div class="report-item">
+        <span class="report-label">عدد الرحلات</span>
+        <span class="report-value" id="driverTripCount">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">إجمالي الأكياس</span>
+        <span class="report-value" id="driverTotalBags">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">إجمالي الرسوم (الأجرة)</span>
+        <span class="report-value" id="driverTotalFees">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">التجار الذين عمل معهم</span>
+        <span class="report-value" id="driverTraders">-</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">القواطر التي قادها</span>
+        <span class="report-value" id="driverTrucks">-</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom: 1rem;">تفاصيل الرحلات</h3>
+  <div class="table-container">
+    <table class="report-table">
+      <thead>
+        <tr><th>التاريخ</th><th>رقم الفاتورة</th><th>اسم التاجر</th><th>رقم اللوحة</th><th>عدد الأكياس</th><th>الأجرة</th></tr>
+      </thead>
+      <tbody id="driverTripsBody"></tbody>
+    </table>
+  </div>
+
+  <div id="driverAccountPrintArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>حساب السائق:</span> <strong id="pdDriverName">-</strong></p>
+            <p><span>التاريخ:</span> <strong id="pdDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="invoice-title">
+        <h1>كشف حساب سائق</h1>
+      </div>
+
+      <table class="details-table" style="margin-bottom: 15px;">
+        <thead>
+          <tr>
+            <th class="col-item">عدد الرحلات</th>
+            <th class="col-amount">إجمالي الأكياس</th>
+            <th class="col-amount">إجمالي الرسوم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="item-name" id="pdTripCount">0</td>
+            <td class="item-amount" id="pdTotalBags">0</td>
+            <td class="item-amount" id="pdTotalFees">0</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="details-table">
+        <thead>
+          <tr>
+            <th class="col-item">التاريخ</th>
+            <th class="col-item">رقم الفاتورة</th>
+            <th class="col-item">اسم التاجر</th>
+            <th class="col-item">رقم اللوحة</th>
+            <th class="col-amount">الأكياس</th>
+            <th class="col-amount">الأجرة</th>
+          </tr>
+        </thead>
+        <tbody id="pdTripsBody"></tbody>
+      </table>
+
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature">
+            <p>توقيع المراجع</p>
+            <div class="signature-line"></div>
+          </div>
+          <div class="signature">
+            <p>ختم وتوقيع المكتب</p>
+            <div class="signature-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="truckAccount" class="section">
+  <h2>&#128667; حساب القاطرة</h2>
+
+  <div class="invoice-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+    <div class="form-group">
+      <label>اختر القاطرة</label>
+      <select id="truckAccountSelect"><option value="">اختر القاطرة</option></select>
+    </div>
+    <div class="form-group">
+      <label>نطاق كشف الحساب</label>
+      <select id="truckPeriodType" class="form-select">
+        <option value="all">كل الفترات (كامل الحساب)</option>
+        <option value="daily">اليوم</option>
+        <option value="weekly">هذا الأسبوع</option>
+        <option value="monthly">هذا الشهر</option>
+        <option value="yearly">هذه السنة</option>
+        <option value="custom">نطاق مخصص</option>
+      </select>
+    </div>
+    <div id="truckCustomDates" class="form-group" style="display: none; gap: 0.5rem; flex-direction: row; align-items: flex-end; grid-column: span 2;">
+      <div>
+        <label>من تاريخ</label>
+        <input type="date" id="truckFromDate" style="padding: 8px;">
+      </div>
+      <div>
+        <label>إلى تاريخ</label>
+        <input type="date" id="truckToDate" style="padding: 8px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="invoice-buttons" style="margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 10px;">
+    <button onclick="printTruckAccount()" class="btn-secondary">&#128424; طباعة</button>
+    <button onclick="exportTruckAccountPDF()" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportTruckAccountPNG()" class="btn-secondary">&#128444; PNG</button>
+    <button onclick="exportTruckAccountExcel()" class="btn-secondary">&#128202; Excel</button>
+  </div>
+
+  <div id="truckSummary" class="card" style="margin-bottom: 1.5rem; display: none;">
+    <h3>ملخص حساب القاطرة</h3>
+    <div class="report-grid">
+      <div class="report-item">
+        <span class="report-label">رقم اللوحة</span>
+        <span class="report-value" id="truckPlateNumber">-</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">نوع القاطرة</span>
+        <span class="report-value" id="truckTypeLabel">-</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">عدد الرحلات</span>
+        <span class="report-value" id="truckTripCount">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">إجمالي الأكياس</span>
+        <span class="report-value" id="truckTotalBags">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">إجمالي الرسوم</span>
+        <span class="report-value" id="truckTotalFees">0</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">السائقين الذين قادوها</span>
+        <span class="report-value" id="truckDrivers">-</span>
+      </div>
+      <div class="report-item">
+        <span class="report-label">التجار الذين حملت لهم</span>
+        <span class="report-value" id="truckTraders">-</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-bottom: 1rem;">تفاصيل الرحلات</h3>
+  <div class="table-container">
+    <table class="report-table">
+      <thead>
+        <tr><th>التاريخ</th><th>رقم الفاتورة</th><th>اسم التاجر</th><th>اسم السائق</th><th>عدد الأكياس</th><th>الأجرة</th></tr>
+      </thead>
+      <tbody id="truckTripsBody"></tbody>
+    </table>
+  </div>
+
+  <div id="truckAccountPrintArea" class="print-area">
+    <div class="invoice-template">
+      <div class="invoice-header">
+        <div class="invoice-header-left">
+          <div class="invoice-logo">
+            <div class="logo-icon">&#128667;</div>
+            <div class="logo-text">
+              <h2>مكتب ابو محمد</h2>
+              <p>للتخليص الجمركي والخدمات اللوجستية</p>
+            </div>
+          </div>
+        </div>
+        <div class="invoice-header-right">
+          <div class="invoice-meta">
+            <p><span>حساب القاطرة:</span> <strong id="ptTruckNumber">-</strong></p>
+            <p><span>التاريخ:</span> <strong id="ptDate">-</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="invoice-title">
+        <h1>كشف حساب قاطرة</h1>
+      </div>
+
+      <table class="details-table" style="margin-bottom: 15px;">
+        <thead>
+          <tr>
+            <th class="col-item">نوع القاطرة</th>
+            <th class="col-amount">عدد الرحلات</th>
+            <th class="col-amount">إجمالي الأكياس</th>
+            <th class="col-amount">إجمالي الرسوم</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="item-name" id="ptTruckType">-</td>
+            <td class="item-amount" id="ptTripCount">0</td>
+            <td class="item-amount" id="ptTotalBags">0</td>
+            <td class="item-amount" id="ptTotalFees">0</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="details-table">
+        <thead>
+          <tr>
+            <th class="col-item">التاريخ</th>
+            <th class="col-item">رقم الفاتورة</th>
+            <th class="col-item">اسم التاجر</th>
+            <th class="col-item">اسم السائق</th>
+            <th class="col-amount">الأكياس</th>
+            <th class="col-amount">الأجرة</th>
+          </tr>
+        </thead>
+        <tbody id="ptTripsBody"></tbody>
+      </table>
+
+      <div class="invoice-footer">
+        <div class="footer-signatures">
+          <div class="signature">
+            <p>توقيع المراجع</p>
+            <div class="signature-line"></div>
+          </div>
+          <div class="signature">
+            <p>ختم وتوقيع المكتب</p>
+            <div class="signature-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="reports" class="section">
+  <h2>&#128202; التقارير</h2>
+
+  <div class="form-group" style="margin-bottom: 1rem;">
+    <label>نوع التقرير</label>
+    <select id="reportCategory" onchange="changeReportCategory()">
+      <option value="daily">&#128197; التقارير اليومية</option>
+      <option value="merchant">&#128100; تقارير التجار</option>
+      <option value="driver">&#128666; تقارير السائقين</option>
+      <option value="truck">&#128667; تقارير القواطر</option>
+      <option value="truckType">&#128666; تقارير حسب نوع القاطرة</option>
+      <option value="fees">&#128176; تقارير الرسوم</option>
+    </select>
+  </div>
+
+  <div class="reports-filters">
+    <select id="reportType" class="form-select">
+      <option value="daily">اليوم</option>
+      <option value="weekly">هذا الاسبوع</option>
+      <option value="monthly">هذا الشهر</option>
+      <option value="yearly">هذا العام</option>
+      <option value="custom">نطاق مخصص</option>
+    </select>
+
+    <select id="reportMerchantSelect" class="form-select" style="display: none;">
+      <option value="all">حسب الجميع (كل التجار)</option>
+    </select>
+
+    <div id="customDateRange" style="display: none; gap: 1rem;">
+      <input type="date" id="reportFrom">
+      <input type="date" id="reportTo">
+    </div>
+    <button id="generateReportBtn" class="btn-primary">&#128202; عرض التقرير</button>
+  </div>
+
+  <div class="invoice-buttons" style="margin-bottom: 1.5rem;">
+    <button onclick="printReport()" class="btn-secondary">&#128424; طباعة التقرير</button>
+    <button onclick="printAdvancedAccountReport()" class="btn-success" style="background-color: #28a745; color: #fff; font-weight: bold; padding: 10px 20px; border: none; border-radius: 4px; margin: 5px; cursor: pointer;">
+      🖨️ طباعة تقرير مالي بالرصيد والسندات
+    </button>
+    <button onclick="exportReportPDF()" class="btn-secondary">&#128196; PDF</button>
+    <button onclick="exportReportPNG()" class="btn-secondary">&#128444; PNG</button>
+  </div>
+
+  <div id="reportPrintArea" class="print-area" style="background: #fff; padding: 25px; border-radius: 8px; border: 1px solid #e0e0e0;">
+    <div class="invoice-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1e3c72; padding-bottom: 15px; margin-bottom: 15px;">
+      <div class="invoice-logo" style="display: flex; align-items: center; gap: 10px;">
+        <div class="logo-icon" style="font-size: 2.5rem;">&#128667;</div>
+        <div class="logo-text" style="text-align: right;">
+          <h2 style="color: #1e3c72; margin: 0; font-size: 1.5rem;">مكتب ابو محمد</h2>
+          <p style="margin: 3px 0 0 0; color: #555; font-size: 0.9rem;">للتخليص الجمركي والخدمات اللوجستية</p>
+        </div>
+      </div>
+      <div class="invoice-meta" style="text-align: left; color: #555; font-size: 0.9rem;">
+        <p style="margin: 0;">الجمهورية اليمنية</p>
+        <p style="margin: 5px 0 0 0;">&#128222; 775477377</p>
+        <p style="margin: 5px 0 0 0;" id="repDate"></p>
+      </div>
+    </div>
+
+    <h3 id="repMainTitle" style="text-align: center; color: #1e3c72; margin-bottom: 1rem; font-size: 1.3rem; font-weight: bold;">تقرير الفواتير</h3>
+
+    <div id="repSummary"></div>
+
+    <table class="details-table">
+      <thead>
+        <tr>
+          <th>رقم الفاتورة</th>
+          <th>التاريخ</th>
+          <th>التاجر</th>
+          <th>السائق</th>
+          <th>رقم اللوحة</th>
+          <th>عدد الأكياس</th>
+          <th>إجمالي الرسوم</th>
+        </tr>
+      </thead>
+      <tbody id="repTransactionsBody"></tbody>
+      <tfoot>
+        <tr class="total-row" style="background-color: #e9ecef; font-weight: bold;">
+          <td colspan="5" style="text-align: left; padding: 10px;">الإجمالي العام:</td>
+          <td id="repTotalBags" style="color: #1e3c72;">0</td>
+           <td id="repTotalAmount" style="color: #28a745;">0 ريال</td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="invoice-footer" style="margin-top: 2.5rem; border-top: 1px dashed #ccc; padding-top: 15px;">
+      <div class="footer-signatures">
+        <div class="signature">
+          <p>توقيع المراجع</p>
+          <div class="signature-line"></div>
+        </div>
+        <div class="signature">
+          <p>ختم وتوقيع المكتب</p>
+          <div class="signature-line"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="reportResult"></div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module" src="main.js"></script>
+
+<script>
+  // ==================== تسجيل Service Worker (تطبيق ويب مثبّت PWA) ====================
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+
+  // ==================== زر "تثبيت التطبيق" على الهاتف ====================
+  let deferredInstallPrompt = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const btn = document.getElementById("pwaInstallBtn");
+    if (btn) btn.style.display = "block";
+  });
+
+  window.installPwaApp = async function () {
+    const btn = document.getElementById("pwaInstallBtn");
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (btn) btn.style.display = "none";
+  };
+
+  window.addEventListener("appinstalled", () => {
+    const btn = document.getElementById("pwaInstallBtn");
+    if (btn) btn.style.display = "none";
+  });
+</script>
+
+</body>
+</html>

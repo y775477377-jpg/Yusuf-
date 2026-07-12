@@ -1,0 +1,12 @@
+{
+  "appId": "com.abumohammed.customs",
+  "appName": "أبو محمد للتخليص الجمركي",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

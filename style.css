@@ -1,0 +1,1811 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.logo-box {
+  font-size: 3rem;
+  background: rgba(255,255,255,0.2);
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.header p {
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.menu {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: white;
+  overflow-x: auto;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.menu-btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: #e9ecef;
+  color: #495057;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.menu-btn:hover {
+  background: #dee2e6;
+}
+
+.menu-btn.active {
+  background: #2a5298;
+  color: white;
+}
+
+.section {
+  display: none;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section.active {
+  display: block;
+}
+
+.section h2 {
+  margin-bottom: 1.5rem;
+  color: #1e3c72;
+  border-bottom: 3px solid #2a5298;
+  padding-bottom: 0.5rem;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.card h3 {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2a5298;
+}
+
+.welcome-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.welcome-section h2 {
+  border: none;
+  color: #1e3c72;
+}
+
+.search-box {
+  margin-bottom: 1rem;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #2a5298;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #2a5298;
+}
+
+.form-inline {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.form-inline input,
+.form-inline select {
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-select {
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1rem;
+  min-width: 200px;
+}
+
+.invoice-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.invoice-result {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.result-row.total {
+  border-bottom: none;
+  border-top: 2px solid #2a5298;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1e3c72;
+}
+
+.invoice-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.export-buttons {
+  background: #d4edda;
+  border: 2px solid #28a745;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.btn-primary {
+  background: #2a5298;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background: #1e3c72;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.btn-success:hover {
+  background: #218838;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-warning:hover {
+  background: #e0a800;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  transition: opacity 0.2s;
+}
+
+.btn-icon:hover {
+  opacity: 0.7;
+}
+
+.list-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.list-container .card {
+  position: relative;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.card-header h4 {
+  color: #1e3c72;
+  font-size: 1.1rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.text-muted {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+  grid-column: 1 / -1;
+}
+
+.error {
+  color: #dc3545;
+  text-align: center;
+  padding: 1rem;
+  background: #f8d7da;
+  border-radius: 8px;
+}
+
+/* =========================
+   PROFESSIONAL INVOICE TEMPLATE
+   ========================= */
+.print-area {
+  display: none;
+  background: white;
+  padding: 0;
+  max-width: 800px;
+  margin: 0 auto;
+  direction: rtl;
+}
+
+.invoice-template {
+  background: white;
+  padding: 30px;
+  border: 2px solid #1e3c72;
+  font-family: 'Arial', 'Tahoma', sans-serif;
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #1e3c72;
+}
+
+.invoice-header-left {
+  flex: 1;
+}
+
+.invoice-header-right {
+  text-align: left;
+}
+
+.invoice-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-icon {
+  width: 60px;
+  height: 60px;
+  background: #1e3c72;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  border-radius: 8px;
+}
+
+.logo-text h2 {
+  color: #1e3c72;
+  font-size: 1.4rem;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.logo-text p {
+  color: #666;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.invoice-meta {
+  text-align: left;
+}
+
+.invoice-meta p {
+  margin: 5px 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.invoice-meta span {
+  color: #666;
+}
+
+.invoice-meta strong {
+  color: #1e3c72;
+  font-size: 1.1rem;
+}
+
+.invoice-title {
+  text-align: center;
+  margin: 25px 0;
+  padding: 15px 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.invoice-title h1 {
+  color: #1e3c72;
+  font-size: 1.5rem;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.invoice-title p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 5px 0 0 0;
+}
+
+/* Info Table */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  border: 2px solid #333;
+}
+
+.info-table th,
+.info-table td {
+  border: 1px solid #333;
+  padding: 10px 15px;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.info-table th {
+  background: #f8f9fa;
+  font-weight: bold;
+  color: #1e3c72;
+  width: 15%;
+}
+
+.info-table td {
+  width: 35%;
+  color: #333;
+}
+
+/* Details Table */
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  border: 2px solid #333;
+}
+
+.details-table thead {
+  background: #1e3c72;
+  color: white;
+}
+
+.details-table thead th {
+  padding: 12px 15px;
+  text-align: right;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 1px solid #1e3c72;
+}
+
+.details-table thead th.col-amount {
+  text-align: center;
+  width: 25%;
+}
+
+.details-table tbody td {
+  border: 1px solid #333;
+  padding: 12px 15px;
+  vertical-align: top;
+}
+
+.details-table tbody td.item-name {
+  text-align: right;
+}
+
+.details-table tbody td.item-amount {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.item-title {
+  font-weight: bold;
+  color: #333;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.item-desc {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.details-table tfoot td {
+  border: 2px solid #333;
+  padding: 15px;
+}
+
+.total-row .item-name {
+  background: #28a745;
+  color: white;
+}
+
+.total-row .item-amount {
+  background: #28a745;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.total-title {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.total-amount {
+  font-size: 1.3rem !important;
+}
+
+/* Invoice Footer */
+.invoice-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.footer-signatures {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.signature {
+  flex: 1;
+  text-align: center;
+}
+
+.signature p {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.signature-line {
+  border-bottom: 1px dotted #999;
+  height: 40px;
+  margin: 0 20px;
+}
+
+/* Reports */
+.reports-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.report-summary {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+}
+
+.report-summary h3 {
+  color: white;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.report-item {
+  background: rgba(255,255,255,0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.report-item.total {
+  background: rgba(255,255,255,0.2);
+  grid-column: 1 / -1;
+}
+
+.report-label {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-bottom: 0.25rem;
+}
+
+.report-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.report-table th,
+.report-table td {
+  padding: 1rem;
+  text-align: right;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.report-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.report-table tr:hover {
+  background: #f8f9fa;
+}
+
+.report-table tfoot {
+  background: #e9ecef;
+  font-weight: bold;
+}
+
+.total-row td {
+  color: #1e3c72;
+  font-size: 1.1rem;
+}
+
+.receipt-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.receipt-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-right: 4px solid #28a745;
+}
+
+.receipt-item h4 {
+  color: #1e3c72;
+  margin-bottom: 0.5rem;
+}
+
+.receipt-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #28a745;
+}
+
+.merchant-balance-positive {
+  color: #28a745;
+}
+
+.merchant-balance-negative {
+  color: #dc3545;
+}
+
+.merchant-balance-zero {
+  color: #6c757d;
+}
+
+.transaction-invoice {
+  background: #fff3cd;
+}
+
+.transaction-receipt {
+  background: #d4edda;
+}
+
+.transaction-transfer {
+  background: #dbe4ff;
+}
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .office-print-only,
+  .office-print-only * {
+    visibility: visible;
+  }
+
+  .office-print-only {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    background: #fff;
+  }
+
+  .invoice-template {
+    border: 2px solid #1e3c72;
+    padding: 20px;
+  }
+
+  .menu,
+  .invoice-buttons,
+  .export-buttons,
+  .invoice-form,
+  .invoice-result,
+  .section h2,
+  .reports-filters,
+  .report-summary,
+  .table-container,
+  .search-box,
+  .form-inline,
+  .form-group,
+  .receipt-form,
+  .list-container,
+  .welcome-section,
+  .dashboard,
+  .card {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .dashboard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .invoice-form {
+    grid-template-columns: 1fr;
+  }
+
+  .form-inline {
+    flex-direction: column;
+  }
+
+  .form-inline input,
+  .form-inline select {
+    width: 100%;
+  }
+
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .invoice-template {
+    padding: 15px;
+  }
+
+  .footer-signatures {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+/* تحسينات لمنع انقطاع كشوفات الحساب عند التصدير والطباعة */
+#accountPrintArea table, .details-table {
+  page-break-inside: auto !important;
+}
+
+#accountPrintArea tr {
+  page-break-inside: avoid !important;
+  page-break-after: auto !important;
+}
+
+/* تمديد مساحة العرض أثناء التقاط الـ PDF */
+.pdf-capture-mode {
+  width: 1000px !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* منطقة الطباعة: لا نفرض width هنا لأن الجافاسكربت (captureAndDownload/preparePrintArea)
+   يتحكم بالعرض بنفسه أثناء الالتقاط (794px) أو الطباعة (210mm)؛ فرض width!important هنا
+   كان يتجاوز عرض الجافاسكربت ويسبب تشوّه الصور وPDF. */
+#accountPrintArea, .print-area {
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+#accountPrintArea table {
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* الحاوية الظاهرة على الشاشة فقط (ليست منطقة طباعة) تأخذ العرض الكامل مع تمرير أفقي عند الحاجة */
+.table-container, #reportPrintArea {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px !important;
+}
+
+/* السماح بالتفاف النص الطويل داخل الخلايا بدل إجباره على سطر واحد (كان هذا سبب اتساع
+   الجداول بشكل مفرط وتشوّه التصدير، خصوصاً في عمود "البيان" الذي يحتوي نصاً طويلاً) */
+.details-table, .info-table, .report-table, table {
+  width: 100% !important;
+  table-layout: auto !important;
+  word-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+/* تنسيق حجم الخط والحواف ليكون مريحاً جداً للقراءة */
+table th, table td {
+  padding: 8px 6px !important;
+  font-size: 0.9rem !important;
+}
+
+/* الحفاظ على الهيكل العام للفاتورة */
+.invoice-template {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 15px 10px !important;
+}
+
+.invoice-header {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+/* ==========================================
+   إخفاء أزرار التعديل والحذف تلقائياً عند الطباعة
+   ========================================== */
+@media print {
+  #adminInvoiceButtons, 
+  .btn-warning, 
+  .btn-danger, 
+  .export-buttons, 
+  button {
+    display: none !important;
+  }
+}
+/* عزل منطقة الطباعة والمعاينة الرسمية عن إعدادات الجوال */
+#printArea, .print-area, #printArea table {
+  box-sizing: border-box !important;
+}
+
+@media print {
+  /* إجبار قالب الفاتورة على العودة للشكل المكتمل والأنيق الأصلي */
+  #printArea, .print-area {
+    width: 100% !important; /* لا نفرض 210mm لأن @page يقتطع هامشاً بالفعل، وإلا يُقصّ المحتوى */
+    max-width: 100% !important;
+    font-size: 12pt !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* منع تقطيع جداول الفاتورة أثناء توليدها */
+  #printArea table {
+    width: 100% !important;
+    table-layout: auto !important;
+    white-space: normal !important;
+  }
+}
+/* حماية قوالب الطباعة والتصدير من تنسيقات الشاشات الصغيرة */
+#printArea, #accountPrintArea, #reportPrintArea {
+    background-color: #ffffff !important;
+    padding: 20px !important;
+    font-family: 'Cairo', sans-serif !important;
+}
+
+/* إجبار جداول التقارير والفواتير الموجهة للتصدير على الثبات العريض */
+#printArea table, #accountPrintArea table, #reportPrintArea table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+#printArea td, #printArea th, 
+#accountPrintArea td, #accountPrintArea th, 
+#reportPrintArea td, #reportPrintArea th {
+    word-wrap: break-word !important;
+    white-space: normal !important;
+}
+/* تنسيقات الطباعة الاحترافية للحفاظ على الاستايل والألوان */
+@media print {
+  /* إجبار المتصفح على طباعة الألوان والخلفيات كاملة */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* إخفاء القوائم، الأزرار، والفلاتر وكل ما هو خارج منطقة التقرير */
+  body * {
+    visibility: hidden;
+  }
+
+  /* إظهار كشف الحساب المجهز للطباعة فقط */
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    direction: rtl;
+  }
+
+  /* تنسيق قالب كشف الحساب داخل الطباعة */
+  .invoice-template {
+    border: 2px solid #1e3c72 !important;
+    padding: 25px !important;
+    background-color: #ffffff !important;
+    border-radius: 8px;
+    box-shadow: none !important;
+  }
+
+  /* الحفاظ على تلوين جداول الحسابات (المدين والدائن) في الطباعة */
+  .details-table th {
+    background-color: #1e3c72 !important;
+    color: white !important;
+  }
+
+  /* الحفاظ على ألوان أسطر الحسابات */
+  .details-table tbody tr {
+    border-bottom: 1px solid #dee2e6 !important;
+  }
+
+  /* إبراز الألوان في قيم المدين والدائن والرصيد عند الطباعة */
+  td[style*="color: #dc3545"] {
+    color: #dc3545 !important;
+    font-weight: bold !important;
+  }
+  td[style*="color: #28a745"] {
+    color: #28a745 !important;
+    font-weight: bold !important;
+  }
+  
+  /* الحفاظ على مظهر الهيدر واللوجو */
+  .invoice-header {
+    border-bottom: 3px double #1e3c72 !important;
+    padding-bottom: 15px !important;
+    margin-bottom: 20px !important;
+  }
+}
+/* ==========================================
+   تنسيقات كشف الحساب الخاص بالطباعة والـ PDF 
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+@page { 
+  size: A4 portrait; 
+  margin: 10mm; 
+}
+
+.print-report-body { 
+  font-family: 'Cairo', sans-serif; 
+  direction: rtl; 
+  text-align: right; 
+  padding: 10px; 
+  color: #000; 
+  background: #fff; 
+}
+
+.header-table { 
+  width: 100%; 
+  border-bottom: 2px solid #1e3c72; 
+  padding-bottom: 8px; 
+  margin-bottom: 15px; 
+}
+
+.logo-title { 
+  font-size: 22px; 
+  color: #1e3c72; 
+  font-weight: 700; 
+  margin: 0; 
+}
+
+.logo-sub { 
+  font-size: 11px; 
+  color: #555; 
+  margin: 2px 0 0 0; 
+}
+
+.main-title { 
+  text-align: center; 
+  font-size: 18px; 
+  color: #1e3c72; 
+  font-weight: bold; 
+  margin: 15px 0; 
+}
+
+table.report-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin-top: 10px; 
+}
+
+table.report-table th { 
+  background-color: #1e3c72; 
+  color: #ffffff; 
+  padding: 12px 6px; 
+  font-weight: bold; 
+  font-size: 13px; 
+  border: 1px solid #333; 
+}
+
+table.report-table td { 
+  text-align: center; 
+  font-size: 12px; 
+}
+
+.total-row { 
+  background-color: #27ae60 !important; 
+  color: white !important; 
+  font-weight: bold; 
+}
+
+.total-row td { 
+  color: white !important; 
+  font-size: 14px; 
+  border: 1px solid #333; 
+}
+
+.footer-section { 
+  margin-top: 60px; 
+  display: flex; 
+  justify-content: space-between; 
+  font-size: 12px; 
+  font-weight: 600; 
+  padding: 0 30px; 
+}
+
+.line-space { 
+  margin-top: 35px; 
+  border-top: 1px solid #333; 
+  width: 180px; 
+}
+/* ==========================================
+   تنسيقات كشف الحساب القديم والأصلي (صناديق وملخص)
+   ========================================== */
+.print-report-body {
+  font-family: 'Cairo', sans-serif;
+  direction: rtl;
+  text-align: right;
+  padding: 20px;
+  background: #fff;
+  color: #333;
+}
+
+.report-header-table {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* تصميم صناديق الملخص العلوية الأربعة */
+.summary-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.summary-box {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.summary-box.final-balance {
+  border: 1px solid #27ae60;
+  background-color: #f4fbf7;
+}
+
+.summary-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.summary-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* الجدول المالي الكلاسيكي القديم */
+table.report-table-old {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table.report-table-old th {
+  border: 1px solid #444;
+  padding: 10px 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #1e3c72;
+  background-color: #fff;
+}
+
+table.report-table-old td {
+  border: 1px solid #444;
+  padding: 8px 5px;
+  font-size: 11px;
+  text-align: center;
+}
+
+.green-text { color: #27ae60; font-weight: bold; }
+.red-text { color: #c0392b; font-weight: bold; }
+
+.old-total-row {
+  background-color: #27ae60 !important;
+  color: #fff !important;
+  font-weight: bold;
+}
+.old-total-row td {
+  color: #fff !important;
+  font-size: 13px;
+}
+
+.footer-signatures {
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 40px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ==================================================================================
+   لوحات حسابات المكتب: النثريات / عمولات المكتب / أجور العمال / سندات الصرف
+   ================================================================================== */
+.office-ledger-wrapper {
+  direction: rtl;
+  font-family: inherit;
+  width: 100%;
+  padding: 0 1.5rem;
+  margin-top: 1rem;
+}
+
+.office-ledger-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ledger-tab-btn {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #1e3c72;
+  transition: all 0.2s ease;
+}
+
+.ledger-tab-btn:hover {
+  background: #1e3c72;
+  color: #fff;
+  border-color: #1e3c72;
+}
+
+.office-ledger-panels {
+  display: none;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.d-panel {
+  display: none;
+}
+
+.office-panel-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+.office-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #f0f2f5;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.office-panel-header h3 {
+  color: #0056b3;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.office-panel-header-danger {
+  color: #c62828 !important;
+}
+
+.panel-close-btn {
+  background: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.panel-close-btn:hover {
+  background: #dc3545;
+  color: #fff;
+  border-color: #dc3545;
+}
+
+.office-total-box {
+  background: #f8f9fa;
+  border: 1px solid #e3e6f0;
+  padding: 12px 18px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.office-total-box-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.office-total-value {
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+
+.office-total-red { color: #e74a3b; }
+.office-total-green { color: #1cc88a; }
+.office-total-blue { color: #4e73df; }
+
+.office-ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.office-ledger-table th {
+  background: #f8f9fa;
+  color: #4e73df;
+  border: 1px solid #e3e6f0;
+  padding: 12px;
+}
+
+.office-ledger-table td {
+  border: 1px solid #e3e6f0;
+}
+
+.office-ledger-table-dark th {
+  background: #2d3748;
+  color: #fff;
+  border: 1px solid #4a5568;
+}
+
+.office-empty {
+  padding: 20px;
+  color: #aaa;
+  text-align: center;
+}
+
+.office-payment-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: #fff5f5;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #feb2b2;
+}
+
+.office-form-group {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+}
+
+.office-form-grow2 { flex: 2; min-width: 200px; }
+.office-form-grow3 { flex: 3; min-width: 220px; }
+
+.office-form-group label {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #4a5568;
+}
+
+.office-form-group input {
+  padding: 9px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.office-form-action {
+  display: flex;
+  align-items: flex-end;
+}
+
+.office-save-btn {
+  padding: 10px 22px;
+  background: #c62828;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  height: 40px;
+  transition: background 0.2s ease;
+}
+
+.office-save-btn:hover {
+  background: #a01f1f;
+}
+
+.office-subtitle {
+  color: #4a5568;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .office-ledger-wrapper { padding: 0 0.75rem; }
+  .office-total-box-group { flex-direction: column; }
+}
+/* تنسيقات ذكية ومنظمة لطباعة التقارير الطويلة لعدة صفحات */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 10mm 15mm 10mm; /* حماية من قص الهوامش */
+  }
+
+  /* السماح للجدول الكلي بالانقسام التلقائي على الصفحات */
+  .details-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  /* منع انقسام السطر الواحد (الفاتورة الواحدة) في منتصف الصفحة */
+  .details-table tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  /* ميزة تكرار ترويسة الجدول في أعلى كل صفحة جديدة تلقائياً */
+  .details-table thead {
+    display: table-header-group !important;
+  }
+
+  /* عرض مجاميع الفواتير بوضوح تام أسفل صفحة البيانات الممتدة */
+  .details-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  /* منع فصل حقول الختم والتوقيع عن بعضها وتثبيتها في آخر صفحة */
+  .invoice-footer {
+    page-break-inside: avoid !important;
+    margin-top: 35px !important;
+  }
+}
+/* =========================================================================
+   تنسيقات رهيبة وفخمة لكشف حساب التجار المالي الملون (أبو محمد)
+   ========================================================================= */
+
+/* تصميم منطقة كشف الحساب المالي */
+.merchant-statement-area {
+  background: #ffffff !important;
+  padding: 30px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  direction: rtl !important;
+}
+
+/* عناوين ملوّنة فخمة */
+.statement-title-accent {
+  text-align: center !important;
+  color: #1e3c72 !important;
+  font-size: 1.6rem !important;
+  font-weight: bold !important;
+  margin: 20px 0 !important;
+  position: relative !important;
+  padding-bottom: 5px !important;
+}
+
+/* بطاقات ملونة لعرض الرصيد الحالي والإجماليات */
+.statement-summary-boxes {
+  display: flex !important;
+  gap: 15px !important;
+  margin-bottom: 25px !important;
+  justify-content: space-between !important;
+}
+
+.statement-box {
+  flex: 1 !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+  text-align: center !important;
+  font-weight: bold !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important;
+}
+
+.statement-box.debtor {
+  background-color: #ebf8ff !important;
+  color: #2b6cb0 !important;
+  border-right: 5px solid #2b6cb0 !important;
+}
+
+.statement-box.creditor {
+  background-color: #f0fff4 !important;
+  color: #2f855a !important;
+  border-right: 5px solid #2f855a !important;
+}
+
+.statement-box.balance-final {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+  color: #ffffff !important;
+}
+
+/* تنسيق الجدول الملون الرهيب */
+.statement-colored-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-top: 15px !important;
+}
+
+.statement-colored-table th {
+  background-color: #1e3c72 !important;
+  color: #ffffff !important;
+  padding: 12px 10px !important;
+  font-weight: bold !important;
+  font-size: 0.95rem !important;
+  border: 1px solid #d2d6dc !important;
+}
+
+.statement-colored-table td {
+  padding: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  font-size: 0.9rem !important;
+  text-align: center !important;
+}
+
+/* تلوين السطور بشكل تبادلي خفيف جداً مريح للعين */
+.statement-colored-table tbody tr:nth-child(even) {
+  background-color: #f7fafc !important;
+}
+
+/* تلوين خانات الحسابات دائن / مدين بشكل رهيب */
+.cell-debtor {
+  color: #e53e3e !important; /* أحمر خفيف للمبالغ المطلوبة/المدين */
+  font-weight: bold !important;
+}
+
+.cell-creditor {
+  color: #38a169 !important; /* أخضر مريح للمبالغ المدفوعة/الدائن */
+  font-weight: bold !important;
+}
+
+/* تكييف التنسيق والألوان أثناء الطباعة الحقيقية لعدة صفحات */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 10mm 15mm 10mm;
+  }
+  
+  body * {
+    visibility: hidden !important;
+  }
+  
+  /* إظهار كشف الحساب فقط وبألوانه الكاملة */
+  .merchant-statement-area, .merchant-statement-area * {
+    visibility: visible !important;
+  }
+  
+  .merchant-statement-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* ميزة التكرار التلقائي لترويسة الجدول مع الشعار في كل صفحة جديدة */
+  .statement-colored-table {
+    page-break-inside: auto !important;
+  }
+  .statement-colored-table tr {
+    page-break-inside: avoid !important;
+  }
+  .statement-colored-table thead {
+    display: table-header-group !important;
+  }
+}
+
+/* ==========================================================
+   كشف حساب التاجر - التصميم الرسمي الفاخر (شاشة وطباعة)
+   ========================================================== */
+.acc-statement {
+  border: 2px solid #1e3c72;
+}
+
+.acc-print-header {
+  border-bottom: 3px solid #1e3c72 !important;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.acc-office-logo {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.acc-print-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.acc-card {
+  flex: 1;
+  min-width: 140px;
+  border-radius: 8px;
+  padding: 10px 14px;
+  text-align: center;
+  border: 1px solid #1e3c72;
+  background: #eef2fb;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.acc-card-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.acc-card-value {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #1e3c72;
+}
+
+.acc-card-debit .acc-card-value { color: #b71c1c; }
+.acc-card-credit .acc-card-value { color: #1b5e20; }
+.acc-card-balance {
+  background: #fff8e1;
+  border-color: #c8860a;
+}
+.acc-card-balance .acc-card-value { color: #8a5a00; }
+
+/* حدود سوداء واضحة لجدول كشف الحساب حتى لا تندمج البيانات عند الطباعة/PDF */
+.acc-details-table,
+.acc-details-table th,
+.acc-details-table td {
+  border: 1px solid #000 !important;
+}
+
+.acc-details-table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+}
+
+.acc-details-table thead tr {
+  background: #1e3c72 !important;
+  color: #ffffff !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.acc-details-table thead th {
+  padding: 10px 6px !important;
+  font-weight: bold;
+}
+
+/* تصحيح عرض الأعمدة: الجدول الجديد فيه 7 أعمدة (نوع/رقم حركة/تاريخ/بيان/مدين/دائن/رصيد)
+   القاعدة العامة .details-table thead th.col-amount تفترض 25% لكل عمود مبلغ وهو ما كان يسبب
+   انزياح وتراكب البيانات عن أعمدتها عند وجود 3 أعمدة مبالغ في نفس الجدول */
+.acc-details-table thead th:nth-child(1) { width: 9%; }
+.acc-details-table thead th:nth-child(2) { width: 10%; }
+.acc-details-table thead th:nth-child(3) { width: 10%; }
+.acc-details-table thead th:nth-child(4) { width: auto; }
+.acc-details-table thead th.col-amount,
+.acc-details-table thead th:nth-child(5),
+.acc-details-table thead th:nth-child(6),
+.acc-details-table thead th:nth-child(7) {
+  width: 13% !important;
+}
+.acc-details-table td, .acc-details-table th {
+  word-break: break-word;
+}
+
+.acc-details-table tfoot tr {
+  background: #e2e8f0 !important;
+  font-weight: bold;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+@media print {
+  .acc-print-cards { display: flex !important; }
+  .acc-card { display: block !important; }
+
+  /* إجبار المتصفح على إبقاء ألوان الهيدر والبطاقات والمبالغ أثناء الطباعة/PDF */
+  .acc-statement, .acc-statement * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* تكرار ترويسة الجدول في كل صفحة عند تقسيم كشف الحساب على عدة صفحات */
+  .acc-details-table thead { display: table-header-group !important; }
+  .acc-details-table tfoot { display: table-footer-group !important; }
+  .acc-details-table tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+  .acc-details-table { page-break-inside: auto !important; }
+
+  .acc-print-header, .acc-print-cards, .invoice-footer {
+    page-break-inside: avoid !important;
+  }
+}
+
+/* دعم إضافي لإظهار الحاوية بالكامل عند الطباعة حتى لو كان القسم الأصل غير نشط،
+   يمنع مشكلة الصفحة البيضاء الفارغة */
+body.printing-mode .print-area {
+  display: block !important;
+  visibility: visible !important;
+}
+
+/* ==========================================================
+   زر تثبيت التطبيق (PWA) - يظهر عند توفر خاصية التثبيت على الهاتف
+   ========================================================== */
+.pwa-install-btn {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 9998;
+  background: #1e3c72;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  cursor: pointer;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.pwa-install-btn:hover {
+  background: #2a5298;
+}
+
+@media print {
+  .pwa-install-btn {
+    display: none !important;
+  }
+}
