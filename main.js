@@ -358,11 +358,7 @@ window.printInvoice = function() {
     alert("احفظ الفاتورة اولاً");
     return;
   }
-  preparePrintArea("printArea");
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => hidePrintArea("printArea"), 500);
-  }, 100);
+  printAreaOrShare("printArea", `فاتورة-${lastSavedInvoice.invoiceNumber || ''}`, 100);
 };
 
 // ==================== تصدير الفاتورة PDF ====================
@@ -570,13 +566,39 @@ function hidePrintArea(elementId) {
   printArea.style.zIndex = "";
 }
 
+// ==================== طباعة منطقة داخل الصفحة (زر "طباعة" العادي) ====================
+// على الحاسوب/PWA: يستخدم window.print() الأصلي كالمعتاد.
+// داخل تطبيق APK: WebView العادي لا يدعم window.print()، لذا نحوّل نفس
+// المنطقة إلى PDF تلقائياً ونفتح قائمة المشاركة/الطباعة الأصلية لأندرويد.
+function printAreaOrShare(elementId, filename, delay) {
+  const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  preparePrintArea(elementId);
+  setTimeout(async () => {
+    if (isNativeApp) {
+      const element = document.getElementById(elementId);
+      try {
+        const { pdfBlob } = await renderElementToPdfBlob(element);
+        await shareOrDownloadBlob(pdfBlob, (filename || elementId) + '.pdf', 'application/pdf', filename || elementId);
+      } catch (e) {
+        console.error('تعذر إنشاء PDF للطباعة:', e);
+        alert('حدث خطأ أثناء تجهيز الطباعة: ' + e.message);
+      } finally {
+        hidePrintArea(elementId);
+      }
+    } else {
+      window.print();
+      setTimeout(() => hidePrintArea(elementId), 500);
+    }
+  }, delay || 150);
+}
+
 // ==================== طباعة مستند HTML كامل داخل الصفحة (بدون فتح نافذة/تبويب خارجي) ====================
 // كانت الشاشات التفصيلية (كشف حساب التاجر، التقرير الشامل) تفتح نافذة
 // جديدة عبر window.open، وهذا يعمل بشكل جيد في متصفح الحاسوب لكنه
 // يفشل أو "يخرج" المستخدم من التطبيق عند تثبيته كتطبيق PWA أو تغليفه
 // بـ Capacitor على أندرويد. الحل: طباعة المحتوى داخل iframe مخفي ضمن
 // نفس الصفحة، فتبقى تجربة الطباعة كاملة "داخل التطبيق".
-function printHtmlInIframe(htmlString) {
+function printHtmlInIframe(htmlString, filename) {
   const iframe = document.createElement('iframe');
   iframe.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; border:none; z-index:999999; background:#fff;';
   document.body.appendChild(iframe);
@@ -587,7 +609,28 @@ function printHtmlInIframe(htmlString) {
     }, 1000);
   };
 
+  const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+
   iframe.onload = () => {
+    if (isNativeApp) {
+      // داخل تطبيق APK: WebView العادي لا يدعم window.print()، لذا نحوّل
+      // نفس المحتوى إلى PDF ونفتح قائمة المشاركة/الطباعة الأصلية لأندرويد
+      (async () => {
+        try {
+          const body = iframe.contentDocument.body;
+          body.style.width = '794px';
+          const { pdfBlob } = await renderElementToPdfBlob(body);
+          await shareOrDownloadBlob(pdfBlob, (filename || 'مستند') + '.pdf', 'application/pdf', filename || 'مستند');
+        } catch (e) {
+          console.error('تعذر إنشاء PDF للطباعة:', e);
+          alert('حدث خطأ أثناء تجهيز الطباعة: ' + e.message);
+        } finally {
+          cleanup();
+        }
+      })();
+      return;
+    }
+
     try {
       iframe.contentWindow.focus();
       iframe.contentWindow.addEventListener('afterprint', cleanup);
@@ -603,18 +646,44 @@ function printHtmlInIframe(htmlString) {
   idoc.write(htmlString);
   idoc.close();
 
-  // شبكة أمان: إزالة الإطار تلقائياً حتى لو لم يُطلق حدث afterprint على بعض المتصفحات
+  // شبكة أمان: إزالة الإطار تلقائياً حتى لو لم تكتمل العملية أعلاه لأي سبب
   setTimeout(() => {
     if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
   }, 120000);
 }
 
-// ==================== مشاركة/طباعة الملف داخل التطبيق (Web Share API) ====================
-// على الهاتف (PWA مثبّت أو تطبيق Capacitor): يفتح قائمة المشاركة الأصلية
-// لأندرويد التي تتضمن "طباعة" مباشرة عبر خدمة الطباعة بالنظام، بالإضافة
-// لخيارات المشاركة والحفظ. على الحاسوب أو عند عدم توفر الخاصية: يتم
-// التنزيل مباشرة كما كان سابقاً.
+// ==================== مشاركة/طباعة الملف داخل التطبيق ====================
+// ثلاث طرق بالترتيب حسب البيئة:
+// 1) تطبيق APK (Capacitor): يحفظ الملف عبر Filesystem الأصلي ثم يفتح قائمة
+//    المشاركة/الطباعة الأصلية لأندرويد عبر Share الأصلي (WebView العادي لا
+//    يدعم window.print() ولا navigator.share() بشكل موثوق كمتصفح كامل).
+// 2) PWA داخل متصفح يدعم Web Share API (خصوصاً الملفات): نفس تجربة المشاركة.
+// 3) خلاف ذلك (حاسوب مثلاً): تنزيل مباشر كملف.
 async function shareOrDownloadBlob(blob, filename, mimeType, shareTitle) {
+  try {
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+      const plugins = window.Capacitor.Plugins || {};
+      if (plugins.Filesystem && plugins.Share) {
+        const base64Data = await blobToBase64(blob);
+        const writeResult = await plugins.Filesystem.writeFile({
+          path: filename,
+          data: base64Data,
+          directory: 'CACHE',
+          recursive: true
+        });
+        await plugins.Share.share({
+          title: shareTitle || filename,
+          url: writeResult.uri,
+          dialogTitle: 'مشاركة أو طباعة الملف'
+        });
+        return;
+      }
+    }
+  } catch (err) {
+    console.error('فشل استخدام المشاركة الأصلية لأندرويد، سيتم تجربة البديل:', err);
+    // استمر تلقائياً إلى المحاولات البديلة أدناه
+  }
+
   try {
     const file = new File([blob], filename, { type: mimeType });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -635,9 +704,121 @@ async function shareOrDownloadBlob(blob, filename, mimeType, shareTitle) {
   setTimeout(() => URL.revokeObjectURL(link.href), 30000);
 }
 
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      const base64 = typeof result === 'string' ? result.split(',')[1] || '' : '';
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 function canvasToBlob(canvas, mimeType, quality) {
   return new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality));
 }
+// ==================== تحويل عنصر DOM إلى ملف PDF (بلوب) مع تقسيم صفحات آمن ====================
+// دالة عامة قابلة لإعادة الاستخدام: تُستخدم لتصدير كشوفات الحساب العادية،
+// وأيضاً لطباعة الشاشات التفصيلية داخل تطبيق APK (حيث لا يعمل window.print()).
+async function renderElementToPdfBlob(element) {
+  await document.fonts.ready;
+  await new Promise(resolve => setTimeout(resolve, 600));
+
+  const scale = 2;
+  const canvas = await html2canvas(element, {
+    scale,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width: 794,
+    windowWidth: 794
+  });
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();   // 210mm
+  const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
+
+  // حساب ارتفاع الصفحة بالبكسل على مقياس الكانفاس
+  const canvasPageHeightPx = Math.floor((canvas.width * pdfHeight) / pdfWidth);
+
+  // نجمع مواضع بداية كل صف من صفوف الجدول (إن وجد) حتى لا يتم قص أي صف من المنتصف
+  const table = element.querySelector('table');
+  let rowStartsPx = [];
+  let headerHeightPx = 0;
+  if (table) {
+    const elementRect = element.getBoundingClientRect();
+    const thead = table.querySelector('thead');
+    if (thead) {
+      const theadRect = thead.getBoundingClientRect();
+      headerHeightPx = Math.round((theadRect.bottom - elementRect.top) * scale);
+    }
+    const rows = table.querySelectorAll('tbody tr');
+    rowStartsPx = Array.from(rows).map(row => {
+      const r = row.getBoundingClientRect();
+      return Math.round((r.top - elementRect.top) * scale);
+    });
+  }
+
+  function findSafeCut(desiredY, minY) {
+    if (rowStartsPx.length === 0) return desiredY;
+    let best = null;
+    for (const rowTop of rowStartsPx) {
+      if (rowTop > minY && rowTop <= desiredY) best = rowTop;
+    }
+    return best !== null && best > minY ? best : desiredY;
+  }
+
+  let yOffset = 0;
+  let pageNumber = 0;
+
+  while (yOffset < canvas.height) {
+    if (pageNumber > 0) {
+      pdf.addPage();
+    }
+
+    const repeatHeader = pageNumber > 0 && headerHeightPx > 0 && yOffset >= headerHeightPx;
+    const availableBodyHeight = repeatHeader ? (canvasPageHeightPx - headerHeightPx) : canvasPageHeightPx;
+
+    const desiredEnd = Math.min(yOffset + availableBodyHeight, canvas.height);
+    const sliceEnd = (desiredEnd < canvas.height)
+      ? findSafeCut(desiredEnd, yOffset)
+      : desiredEnd;
+    const sliceHeight = Math.max(1, sliceEnd - yOffset);
+
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeight + (repeatHeader ? headerHeightPx : 0);
+    const ctx = pageCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+
+    let destY = 0;
+    if (repeatHeader) {
+      ctx.drawImage(canvas, 0, 0, canvas.width, headerHeightPx, 0, 0, canvas.width, headerHeightPx);
+      destY = headerHeightPx;
+    }
+
+    ctx.drawImage(canvas, 0, yOffset, canvas.width, sliceHeight, 0, destY, canvas.width, sliceHeight);
+
+    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+    const pageImgHeight = (pageCanvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pageImgHeight);
+
+    yOffset = sliceEnd;
+    pageNumber++;
+
+    if (pageNumber > 200) break; // حماية من حلقة لا نهائية
+  }
+
+  return { pdfBlob: pdf.output('blob'), canvas };
+}
+
 async function captureAndDownload(elementId, filename, type) {
   const element = document.getElementById(elementId);
   if (!element) return;
@@ -677,116 +858,18 @@ async function captureAndDownload(elementId, filename, type) {
   };
 
   try {
-    await document.fonts.ready;
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const scale = 2;
-    const canvas = await html2canvas(element, {
-      scale,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      width: 794,
-      windowWidth: 794
-    });
-
     if (type === 'pdf') {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'mm', 'a4');
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();   // 210mm
-      const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
-
-      // حساب ارتفاع الصفحة بالبكسل على مقياس الكانفاس
-      const canvasPageHeightPx = Math.floor((canvas.width * pdfHeight) / pdfWidth);
-
-      // نجمع مواضع بداية كل صف من صفوف الجدول (إن وجد) حتى لا يتم قص أي صف من المنتصف
-      // (هذا هو السبب الرئيسي لظهور الكشف "مشوهاً" عند التصدير كملف طويل)
-      const table = element.querySelector('table');
-      let rowStartsPx = [];
-      let headerHeightPx = 0;
-      if (table) {
-        const elementRect = element.getBoundingClientRect();
-        const thead = table.querySelector('thead');
-        if (thead) {
-          const theadRect = thead.getBoundingClientRect();
-          headerHeightPx = Math.round((theadRect.bottom - elementRect.top) * scale);
-        }
-        const rows = table.querySelectorAll('tbody tr');
-        rowStartsPx = Array.from(rows).map(row => {
-          const r = row.getBoundingClientRect();
-          return Math.round((r.top - elementRect.top) * scale);
-        });
-      }
-
-      // تجد أقرب "خط قص آمن" لا يمر داخل صف بيانات
-      function findSafeCut(desiredY, minY) {
-        if (rowStartsPx.length === 0) return desiredY;
-        let best = null;
-        for (const rowTop of rowStartsPx) {
-          if (rowTop > minY && rowTop <= desiredY) best = rowTop;
-        }
-        // إن لم يوجد أي حد صف مناسب (صف واحد أطول من الصفحة) أبقِ القص كما هو
-        return best !== null && best > minY ? best : desiredY;
-      }
-
-      let yOffset = 0;
-      let pageNumber = 0;
-
-      while (yOffset < canvas.height) {
-        if (pageNumber > 0) {
-          pdf.addPage();
-        }
-
-        // ارتفاع الهيدر يُعاد رسمه أعلى كل صفحة تالية (غير الأولى) لتكرار رأس الجدول
-        const repeatHeader = pageNumber > 0 && headerHeightPx > 0 && yOffset >= headerHeightPx;
-        const availableBodyHeight = repeatHeader ? (canvasPageHeightPx - headerHeightPx) : canvasPageHeightPx;
-
-        const desiredEnd = Math.min(yOffset + availableBodyHeight, canvas.height);
-        const sliceEnd = (desiredEnd < canvas.height)
-          ? findSafeCut(desiredEnd, yOffset)
-          : desiredEnd;
-        const sliceHeight = Math.max(1, sliceEnd - yOffset);
-
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeight + (repeatHeader ? headerHeightPx : 0);
-        const ctx = pageCanvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-
-        let destY = 0;
-        if (repeatHeader) {
-          ctx.drawImage(
-            canvas,
-            0, 0, canvas.width, headerHeightPx,
-            0, 0, canvas.width, headerHeightPx
-          );
-          destY = headerHeightPx;
-        }
-
-        ctx.drawImage(
-          canvas,
-          0, yOffset, canvas.width, sliceHeight,
-          0, destY, canvas.width, sliceHeight
-        );
-
-        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
-        const pageImgHeight = (pageCanvas.height * pdfWidth) / canvas.width;
-        pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pageImgHeight);
-
-        yOffset = sliceEnd;
-        pageNumber++;
-
-        // حماية من حلقة لا نهائية في حال تساوي القيم
-        if (pageNumber > 200) break;
-      }
-
-      const pdfBlob = pdf.output('blob');
+      const { pdfBlob } = await renderElementToPdfBlob(element);
       await shareOrDownloadBlob(pdfBlob, filename + '.pdf', 'application/pdf', filename);
 
     } else if (type === 'png') {
+      await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const canvas = await html2canvas(element, {
+        scale: 2, useCORS: true, allowTaint: true,
+        backgroundColor: '#ffffff', logging: false,
+        width: 794, windowWidth: 794
+      });
       const pngBlob = await canvasToBlob(canvas, 'image/png', 1.0);
       await shareOrDownloadBlob(pngBlob, filename + '.png', 'image/png', filename);
     }
@@ -1445,11 +1528,7 @@ window.printAccount = function() {
     alert("اختر تاجر اولاً");
     return;
   }
-  preparePrintArea("accountPrintArea");
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => hidePrintArea("accountPrintArea"), 500);
-  }, 150);
+  printAreaOrShare("accountPrintArea", `كشف-حساب-${currentAccountData.merchantName}`, 150);
 };
 
 // ==================== طباعة كشف الحساب التفصيلي مع الشعار والعنوان الرسمي ====================
@@ -1604,7 +1683,7 @@ window.printDetailedMerchantAccount = async function() {
       </div>
     </body>
     </html>
-  `);
+  `, `كشف-حساب-${mName}`);
 };
 
 // ==================== تصدير كشف الحساب PDF ====================
@@ -1924,11 +2003,7 @@ window.printReport = function() {
     alert("عرض تقرير اولاً");
     return;
   }
-  preparePrintArea("reportPrintArea");
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => hidePrintArea("reportPrintArea"), 500);
-  }, 100);
+  printAreaOrShare("reportPrintArea", `تقرير-${currentReportData.title}`, 100);
 };
 
 // ==================== طباعة تقرير مالي متقدم بالرصيد والسندات مع الشعار ====================
@@ -2198,7 +2273,7 @@ window.printAdvancedAccountReport = async function() {
         </div>
       </body>
       </html>
-    `);
+    `, `التقرير-الشامل`);
 
   } catch (error) {
     console.error("خطأ في طباعة التقرير المتقدم:", error);
@@ -2489,11 +2564,7 @@ async function loadTruckAccount() {
 // ==================== طباعة وتصدير حساب السائق ====================
 window.printDriverAccount = function () {
   if (!currentDriverAccountData) { alert("اختر سائقاً اولاً"); return; }
-  preparePrintArea("driverAccountPrintArea");
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => hidePrintArea("driverAccountPrintArea"), 500);
-  }, 100);
+  printAreaOrShare("driverAccountPrintArea", `حساب-سائق-${currentDriverAccountData.entityName}`, 100);
 };
 
 window.exportDriverAccountPDF = function () {
@@ -2522,11 +2593,7 @@ window.exportDriverAccountExcel = function () {
 // ==================== طباعة وتصدير حساب القاطرة ====================
 window.printTruckAccount = function () {
   if (!currentTruckAccountData) { alert("اختر قاطرة اولاً"); return; }
-  preparePrintArea("truckAccountPrintArea");
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => hidePrintArea("truckAccountPrintArea"), 500);
-  }, 100);
+  printAreaOrShare("truckAccountPrintArea", `حساب-قاطرة-${currentTruckAccountData.entityName}`, 100);
 };
 
 window.exportTruckAccountPDF = function () {
@@ -2862,11 +2929,7 @@ window.printEntityList = function (type) {
   const cfg = ENTITY_LIST_CONFIG[type];
   if (!cfg) return;
   renderEntityListPrintArea(type);
-  preparePrintArea(cfg.printAreaId);
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => hidePrintArea(cfg.printAreaId), 500);
-  }, 100);
+  printAreaOrShare(cfg.printAreaId, `قائمة-${type}`, 100);
 };
 
 window.exportEntityListPDF = function (type) {
@@ -2929,6 +2992,21 @@ window.printOfficePanel = function (type) {
   if (!cfg) return;
   const el = document.getElementById(cfg.captureId);
   if (!el) return;
+
+  const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (isNativeApp) {
+    (async () => {
+      try {
+        const { pdfBlob } = await renderElementToPdfBlob(el);
+        await shareOrDownloadBlob(pdfBlob, `سجل-${type}.pdf`, 'application/pdf', `سجل-${type}`);
+      } catch (e) {
+        console.error('تعذر إنشاء PDF للطباعة:', e);
+        alert('حدث خطأ أثناء تجهيز الطباعة: ' + e.message);
+      }
+    })();
+    return;
+  }
+
   el.classList.add("office-print-only");
   window.print();
   setTimeout(() => el.classList.remove("office-print-only"), 500);
