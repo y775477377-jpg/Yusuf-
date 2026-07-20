@@ -424,6 +424,14 @@ window.updateCurrentInvoice = async function() {
 
 // ==================== حذف فاتورة ====================
 window.deleteInvoice = async function(id) {
+  // حماية حرجة: لا تسمح أبداً بمتابعة الحذف إن كان المعرف فارغاً أو غير صالح،
+  // لأن المسار "invoices/" (بدون معرف) يشير إلى كامل قائمة الفواتير في
+  // قاعدة البيانات، ما يعني حذف كل الفواتير دفعة واحدة بدل فاتورة واحدة فقط.
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    alert('⚠️ تعذر تحديد الفاتورة المطلوب حذفها (معرف غير صالح) — تم إلغاء الحذف لحمايتك. أعد تحميل الصفحة وحاول مرة أخرى.');
+    console.error('deleteInvoice استُدعيت بمعرف فارغ/غير صالح — تم منع الحذف:', id);
+    return;
+  }
   if (!confirm('هل انت متأكد من حذف هذه الفاتورة؟')) return;
   try {
     await remove(ref(db, `invoices/${id}`));
@@ -982,6 +990,11 @@ window.editTrader = async function(id) {
 
 // ==================== حذف تاجر ====================
 window.deleteTrader = async function(id) {
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    alert('⚠️ تعذر تحديد التاجر المطلوب حذفه — تم إلغاء الحذف لحمايتك.');
+    console.error('deleteTrader استُدعيت بمعرف فارغ/غير صالح — تم منع الحذف:', id);
+    return;
+  }
   if (!confirm('هل انت متأكد من حذف هذا التاجر؟')) return;
   try {
     await remove(ref(db, `traders/${id}`));
@@ -1077,6 +1090,11 @@ window.editDriver = async function(id) {
 
 // ==================== حذف سائق ====================
 window.deleteDriver = async function(id) {
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    alert('⚠️ تعذر تحديد السائق المطلوب حذفه — تم إلغاء الحذف لحمايتك.');
+    console.error('deleteDriver استُدعيت بمعرف فارغ/غير صالح — تم منع الحذف:', id);
+    return;
+  }
   if (!confirm('هل انت متأكد من حذف هذا السائق؟')) return;
   try {
     await remove(ref(db, `drivers/${id}`));
@@ -1174,6 +1192,11 @@ window.editTruck = async function(id) {
 
 // ==================== حذف قاطرة ====================
 window.deleteTruck = async function(id) {
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    alert('⚠️ تعذر تحديد القاطرة المطلوب حذفها — تم إلغاء الحذف لحمايتك.');
+    console.error('deleteTruck استُدعيت بمعرف فارغ/غير صالح — تم منع الحذف:', id);
+    return;
+  }
   if (!confirm('هل انت متأكد من حذف هذه القاطرة؟')) return;
   try {
     await remove(ref(db, `trucks/${id}`));
@@ -1280,6 +1303,11 @@ window.editReceipt = async function(id) {
 
 // ==================== حذف سند قبض ====================
 window.deleteReceipt = async function(id) {
+  if (!id || typeof id !== 'string' || id.trim() === '') {
+    alert('⚠️ تعذر تحديد السند المطلوب حذفه — تم إلغاء الحذف لحمايتك.');
+    console.error('deleteReceipt استُدعيت بمعرف فارغ/غير صالح — تم منع الحذف:', id);
+    return;
+  }
   if (!confirm('هل انت متأكد من حذف هذا السند؟')) return;
   try {
     await remove(ref(db, `receipts/${id}`));
@@ -1827,7 +1855,7 @@ if (generateReportBtn) {
 
       const snap = await get(ref(db, "invoices"));
       const data = snap.val() || {};
-      const allInvs = Object.values(data);
+      const allInvs = Object.entries(data).map(([id, inv]) => ({ ...inv, id }));
       let invoices = filterInvoicesByRange(allInvs, range).map(inv => ({ ...inv }));
 
       const selectedMerchant = (cat === 'merchant' && reportMerchantSelect && reportMerchantSelect.value && reportMerchantSelect.value !== 'all')
